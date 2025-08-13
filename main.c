@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <termios.h>
 
@@ -18,7 +19,7 @@ void EnableRawMode() {
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 }
 
-void InitLv() {
+void InitLiv() {
     printf("\x1B[H\x1B[22J");
     printf("\x1B[38;2;214;192;201m");
     printf("\x1B[48;2;26;21;24m");
@@ -29,30 +30,33 @@ void DisableRawMode() {
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);
 }
 
-void ExitLv() {
+void ExitLiv() {
     DisableRawMode();
     printf("\x1B[0m");
     printf("\x1B[H\x1B[22J");
+    exit(0);
+}
+
+void RefreshScreen() {
+    write(STDOUT_FILENO, "\x1B[2J", 4);
+    write(STDOUT_FILENO, "\x1B[H", 3);
+}
+
+void ProsessKey() {
+    char key = '\0';
+    read(STDIN_FILENO, &key, 1);
+
+    if (key == 'q') ExitLiv();
 }
 
 int main() {
 
-    InitLv();
+    InitLiv();
 
-    char c;
     while (1) {
-        char c = '\0';
-        read(STDIN_FILENO, &c, 1);
-
-        if (c > 32 && c < 127) {
-            printf("%d ('%c')\r\n\x1B[1;1H\x1B[2K", c, c);
-        } else {
-            printf("%d\r\n\x1B[1;1H\x1B[2K", c);
-        }
-        if (c == 'q') break;
+        RefreshScreen();
+        ProsessKey();
     }
-
-    ExitLv();
 
     return 0;
 }
