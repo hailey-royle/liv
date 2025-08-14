@@ -10,19 +10,21 @@ right word
 right
 
 start of file
+start of screen
 start of paragraph
 up
 
 end of file
+end of screen
 end of paragraph
 down
 
-insert
-select
 move
+select
+insert
 delete
-chanHe
-yeet
+change
+copy
 
 search
 next 
@@ -36,8 +38,8 @@ inner
 - '
 
 escape
-undo?
-redo?
+undo
+redo
 
 
 a

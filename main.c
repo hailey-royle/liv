@@ -21,8 +21,7 @@ void EnableRawMode() {
 
 void InitLiv() {
     printf("\x1B[H\x1B[22J");
-    printf("\x1B[38;2;214;192;201m");
-    printf("\x1B[48;2;26;21;24m");
+    fflush(stdout);
     EnableRawMode();
 }
 
@@ -32,14 +31,12 @@ void DisableRawMode() {
 
 void ExitLiv() {
     DisableRawMode();
-    printf("\x1B[0m");
     printf("\x1B[H\x1B[22J");
     exit(0);
 }
 
 void RefreshScreen() {
-    write(STDOUT_FILENO, "\x1B[2J", 4);
-    write(STDOUT_FILENO, "\x1B[H", 3);
+    printf("\x1B[H\x1B[22J");
 }
 
 void ProsessKey() {
@@ -47,6 +44,10 @@ void ProsessKey() {
     read(STDIN_FILENO, &key, 1);
 
     if (key == 'q') ExitLiv();
+    if (key == 'l') {
+        printf("\rliv");
+        fflush(stdout);
+    }
 }
 
 int main() {
@@ -54,7 +55,6 @@ int main() {
     InitLiv();
 
     while (1) {
-        RefreshScreen();
         ProsessKey();
     }
 
