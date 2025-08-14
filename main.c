@@ -36,7 +36,6 @@ void ExitLiv() {
 }
 
 void RefreshScreen() {
-    printf("\x1B[H\x1B[22J");
 }
 
 void ProsessKey() {
@@ -44,10 +43,6 @@ void ProsessKey() {
     read(STDIN_FILENO, &key, 1);
 
     if (key == 'q') ExitLiv();
-    if (key == 'l') {
-        printf("\rliv");
-        fflush(stdout);
-    }
 }
 
 int main() {
@@ -55,6 +50,7 @@ int main() {
     InitLiv();
 
     while (1) {
+        RefreshScreen();
         ProsessKey();
     }
 
