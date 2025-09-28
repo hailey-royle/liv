@@ -19,8 +19,7 @@ void EnableRawMode() {
 }
 
 void InitLiv() {
-    printf(START_ALT_SCREEN);
-    fflush(stdout);
+    write(STDOUT_FILENO, START_ALT_SCREEN, sizeof(START_ALT_SCREEN));
     EnableRawMode();
 }
 
