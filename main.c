@@ -3,56 +3,60 @@
 #include <unistd.h>
 #include <termios.h>
 
-struct termios orig_termios;
+#define START_ALT_SCREEN "\x1b[?1049h"
+#define END_ALT_SCREEN "\x1b[?1049l"
+
+struct termios NormalTermios;
 
 void EnableRawMode() {
-    tcgetattr(STDIN_FILENO, &orig_termios);
-
-    struct termios raw = orig_termios;
-    raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
-    raw.c_oflag &= ~(OPOST);
-    raw.c_cflag |= (CS8);
-    raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
-    raw.c_cc[VMIN] = 0;
-    raw.c_cc[VTIME] = 1;
-
-    tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
+    tcgetattr(STDIN_FILENO, &NormalTermios);
+    struct termios RawTermios = NormalTermios;
+    RawTermios.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
+    RawTermios.c_oflag &= ~(OPOST);
+    RawTermios.c_cflag |= (CS8);
+    RawTermios.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
+    RawTermios.c_cc[VMIN] = 0;
+    RawTermios.c_cc[VTIME] = 1;
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &RawTermios);
 }
 
 void InitLiv() {
-    printf("\x1B[H\x1B[22J");
-    fflush(stdout);
+    printf(START_ALT_SCREEN);
     EnableRawMode();
 }
 
 void DisableRawMode() {
-    tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &NormalTermios);
 }
 
 void ExitLiv() {
     DisableRawMode();
-    printf("\x1B[H\x1B[22J");
+    printf(END_ALT_SCREEN);
     exit(0);
 }
 
-void RefreshScreen() {
+void ProssesKeyPress() {
+    char key;
+    read(STDIN_FILENO, &key, 1);
+    if (key == 0) {
+    } else if (key == 'q') {
+        ExitLiv();
+    } else if (key >= 32 && key < 127) {
+        printf("(%d):%c\r\n", key, key);
+    } else {
+        printf("(%d):\r\n", key);
+    }
 }
 
-void ProsessKey() {
-    char key = '\0';
-    read(STDIN_FILENO, &key, 1);
-
-    if (key == 'q') ExitLiv();
+void RunLiv() {
+    while (1) {
+        ProssesKeyPress();
+        fflush(stdout);
+    }
 }
 
 int main() {
-
     InitLiv();
-
-    while (1) {
-        RefreshScreen();
-        ProsessKey();
-    }
-
+    RunLiv();
     return 0;
 }

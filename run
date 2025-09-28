@@ -1,0 +1,5 @@
+#!/bin/bash
+
+gcc main.c -Wall -Wextra -pedantic -std=c99
+./a.out
+rm a.out
