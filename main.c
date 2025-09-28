@@ -15,13 +15,12 @@ void EnableRawMode() {
     RawTermios.c_oflag &= ~(OPOST);
     RawTermios.c_cflag |= (CS8);
     RawTermios.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
-    RawTermios.c_cc[VMIN] = 0;
-    RawTermios.c_cc[VTIME] = 1;
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &RawTermios);
 }
 
 void InitLiv() {
     printf(START_ALT_SCREEN);
+    fflush(stdout);
     EnableRawMode();
 }
 
@@ -51,7 +50,6 @@ void ProssesKeyPress() {
 void RunLiv() {
     while (1) {
         ProssesKeyPress();
-        fflush(stdout);
     }
 }
 
