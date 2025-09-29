@@ -73,7 +73,7 @@ void CursorLeft() {
 }
 
 void CursorDown() {
-    if (screen.cursorY < screen.rows) {
+    if (screen.cursorY < screen.rows - 1) {
         screen.cursorY++;
     }
 }
@@ -85,7 +85,7 @@ void CursorUp() {
 }
 
 void CursorRight() {
-    if (screen.cursorX < screen.columns) {
+    if (screen.cursorX < screen.columns - 1) {
         screen.cursorX++;
     }
 }
