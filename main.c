@@ -60,7 +60,6 @@ void RefreshScreen() {
         if (i < screen.rows - 1) {
             printf("\r\n");
         }
-        fflush(stdout);
     }
     printf("\x1b[%d;%dH", screen.cursorY + 1, screen.cursorX + 1);
     fflush(stdout);
