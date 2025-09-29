@@ -33,7 +33,7 @@ void GetWindowSize() {
     struct winsize ws;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws);
     screen.columns = ws.ws_col - 4;
-    screen.rows = ws.ws_row - 1;
+    screen.rows = ws.ws_row;
 }
 
 void InitLiv() {
@@ -56,12 +56,12 @@ void RefreshScreen() {
     printf(CURSOR_HOME);
     printf(ERASE_SCREEN);
     for (int i = 0; i < screen.rows; i++) {
-        printf("%2d", i);
+        printf("%3d", i - screen.cursorY);
         if (i < screen.rows - 1) {
             printf("\r\n");
         }
     }
-    printf("\x1b[%d;%dH", screen.cursorY + 1, screen.cursorX + 4);
+    printf("\x1b[%d;%dH", screen.cursorY + 1, screen.cursorX + 5);
     fflush(stdout);
 }
 
@@ -72,7 +72,7 @@ void CursorLeft() {
 }
 
 void CursorDown() {
-    if (screen.cursorY < screen.rows) {
+    if (screen.cursorY < screen.rows - 1) {
         screen.cursorY++;
     }
 }
@@ -84,7 +84,7 @@ void CursorUp() {
 }
 
 void CursorRight() {
-    if (screen.cursorX < screen.columns) {
+    if (screen.cursorX < screen.columns - 1) {
         screen.cursorX++;
     }
 }
