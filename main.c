@@ -56,13 +56,9 @@ void RefreshScreen() {
     printf(CURSOR_HOME);
     printf(ERASE_SCREEN);
     for (int i = 0; i < screen.rows; i++) {
-        if (i < screen.cursorY) {
-            printf("%3d", screen.cursorY - i);
-        } else if (i == screen.cursorY) {
-            printf("%3d", screen.cursorY);
-        } else {
-            printf("%3d", i - screen.cursorY);
-        }
+        if      (i < screen.cursorY) { printf("%3d", screen.cursorY - i); }
+        else if (i > screen.cursorY) { printf("%3d", i - screen.cursorY); }
+        else if (i == screen.cursorY) { printf("%d", screen.cursorY); }
         if (i < screen.rows - 1) {
             printf("\r\n");
         }
