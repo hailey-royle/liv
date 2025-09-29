@@ -8,14 +8,14 @@
 #define END_ALT_SCREEN "\x1b[?1049l"
 #define CURSOR_HOME "\x1b[H"
 #define ERASE_SCREEN "\x1b[2J"
-#define SAVE_CURSOR "\x1b[s"
-#define RESTORE_CURSOR "\x1b[u"
 
 struct termios NormalTermios;
 
 struct screen {
     int columns;
     int rows;
+    int cursorX;
+    int cursorY;
 };
 struct screen screen;
 
@@ -53,7 +53,6 @@ void ExitLiv() {
 }
 
 void RefreshScreen() {
-    write(STDOUT_FILENO, SAVE_CURSOR, sizeof(SAVE_CURSOR));
     write(STDOUT_FILENO, CURSOR_HOME, sizeof(CURSOR_HOME));
     write(STDOUT_FILENO, ERASE_SCREEN, sizeof(ERASE_SCREEN));
     for (int i = 0; i < screen.rows; i++) {
@@ -63,18 +62,42 @@ void RefreshScreen() {
         }
         fflush(stdout);
     }
-    write(STDOUT_FILENO, RESTORE_CURSOR, sizeof(RESTORE_CURSOR));
+    printf("\x1b[%d;%dH", screen.cursorY + 1, screen.cursorX + 1);
+    fflush(stdout);
+}
+
+void CursorLeft() {
+    if (screen.cursorX > 0) {
+        screen.cursorX--;
+    }
+}
+
+void CursorDown() {
+    if (screen.cursorY < screen.rows) {
+        screen.cursorY++;
+    }
+}
+
+void CursorUp() {
+    if (screen.cursorY > 0) {
+        screen.cursorY--;
+    }
+}
+
+void CursorRight() {
+    if (screen.cursorX < screen.columns) {
+        screen.cursorX++;
+    }
 }
 
 void ProssesKeyPress() {
     char key;
     read(STDIN_FILENO, &key, 1);
-    if (key == 0) {
-    } else if (key == 'q') {
-        ExitLiv();
-    } else if (key >= 32 && key < 127) {
-    } else {
-    }
+    if      (key == 'q') { ExitLiv(); }
+    else if (key == 'h') { CursorLeft(); }
+    else if (key == 'j') { CursorDown(); }
+    else if (key == 'k') { CursorUp(); }
+    else if (key == 'l') { CursorRight(); }
 }
 
 void RunLiv() {
