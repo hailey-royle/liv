@@ -32,8 +32,8 @@ void EnableRawMode() {
 void GetWindowSize() {
     struct winsize ws;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws);
-    screen.columns = ws.ws_col;
-    screen.rows = ws.ws_row;
+    screen.columns = ws.ws_col - 4;
+    screen.rows = ws.ws_row - 1;
 }
 
 void InitLiv() {
@@ -61,7 +61,7 @@ void RefreshScreen() {
             printf("\r\n");
         }
     }
-    printf("\x1b[%d;%dH", screen.cursorY + 1, screen.cursorX + 1);
+    printf("\x1b[%d;%dH", screen.cursorY + 1, screen.cursorX + 4);
     fflush(stdout);
 }
 
@@ -72,7 +72,7 @@ void CursorLeft() {
 }
 
 void CursorDown() {
-    if (screen.cursorY < screen.rows - 1) {
+    if (screen.cursorY < screen.rows) {
         screen.cursorY++;
     }
 }
@@ -84,7 +84,7 @@ void CursorUp() {
 }
 
 void CursorRight() {
-    if (screen.cursorX < screen.columns - 1) {
+    if (screen.cursorX < screen.columns) {
         screen.cursorX++;
     }
 }
