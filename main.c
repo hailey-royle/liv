@@ -37,7 +37,7 @@ void GetWindowSize() {
 }
 
 void InitLiv() {
-    write(STDOUT_FILENO, START_ALT_SCREEN, sizeof(START_ALT_SCREEN));
+    printf(START_ALT_SCREEN);
     EnableRawMode();
     GetWindowSize();
 }
@@ -53,8 +53,8 @@ void ExitLiv() {
 }
 
 void RefreshScreen() {
-    write(STDOUT_FILENO, CURSOR_HOME, sizeof(CURSOR_HOME));
-    write(STDOUT_FILENO, ERASE_SCREEN, sizeof(ERASE_SCREEN));
+    printf(CURSOR_HOME);
+    printf(ERASE_SCREEN);
     for (int i = 0; i < screen.rows; i++) {
         printf("%2d", i);
         if (i < screen.rows - 1) {
