@@ -1,5 +1,5 @@
 #!/bin/bash
 
-gcc main.c -O3 -Wall -Wextra -pedantic -std=c99
-./a.out
+gcc main.c -O3 -Wall -Wextra -pedantic
+./a.out $1
 rm a.out
