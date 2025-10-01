@@ -9,12 +9,13 @@
 #define END_ALT_SCREEN "\x1b[?1049l"
 #define CURSOR_HOME "\x1b[H"
 #define ERASE_SCREEN "\x1b[2J"
+#define COLUMN_OFFSET 4
+#define BOTTOM_OFFSET 2
 
 struct termios NormalTermios;
 
 struct piece {
-    char* buffer;
-    int start;
+    char* start;
     int length;
 };
 
@@ -22,16 +23,19 @@ struct table {
     struct piece piece[256];
     char* original;
     char* added;
-    char* currentLine;
-    int currentLineNumber;
+    int pieceCount;
+    int linePiece;
+    int lineStart;
+    int lineLength;
+    int lineNumber;
+    int lineCursor;
 };
+struct table table;
 
 struct liv {
-    struct table table;
     char* fileName;
     int columns;
     int rows;
-    int cursorX;
 };
 struct liv liv;
 
@@ -50,12 +54,12 @@ void LoadFile() {
         printf("File: '%s' not found", liv.fileName);
         exit(1);
     }
-    int fileLength = getdelim(&liv.table.original, &size, '\0', filePointer);
+    int fileLength = getdelim(&table.original, &size, '\0', filePointer);
     fclose(filePointer);
-    liv.table.piece[0].start = 0;
-    liv.table.piece[0].length = fileLength;
-    liv.table.piece[0].buffer = liv.table.original;
-    liv.table.currentLine = liv.table.original;
+    table.piece[0].start = table.original;
+    table.piece[0].length = fileLength;
+    table.lineNumber++;
+    table.lineLength = strcspn(table.original, "\n");
 }
 
 void DisableRawMode() {
@@ -78,8 +82,8 @@ void EnableRawMode() {
 void GetScreenSize() {
     struct winsize ws;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws);
-    liv.columns = ws.ws_col - 4;
-    liv.rows = ws.ws_row - 2;
+    liv.columns = ws.ws_col - COLUMN_OFFSET;
+    liv.rows = ws.ws_row - BOTTOM_OFFSET;
 }
 
 void InitScreen() {
@@ -87,75 +91,184 @@ void InitScreen() {
     GetScreenSize();
 }
 
-char* GetRelitiveLine(int offset) { // ignores pieces
-    char* line = liv.table.currentLine;
-    if (offset + liv.table.currentLineNumber < 0) {
-        return NULL;
+void GetLine(char* buffer, int remaining, int piece, int offset) {
+    if (piece < 0) {
+        *buffer = '\n';
+        buffer++;
+        *buffer = '\0';
+        return;
     }
-    while (offset < 0) {
-        line -= 2;
-        while (line[0] != '\n') {
-            line--;
+    while (*(table.piece[piece].start + offset) != '\n') {
+        remaining--;
+        if (remaining <= 1) {
+            break;
         }
-            line++;
+        if (offset >= table.piece[piece].length) {
+            if (piece >= table.pieceCount) {
+                break;
+            }
+            piece++;
+            offset = 0;
+        }
+        *buffer = *(table.piece[piece].start + offset);
+        buffer++;
         offset++;
     }
-    while (offset > 0) {
-        while (line[0] != '\n') {
-            line++;
-            if (line[0] == '\0') {
-                return NULL;
+    *buffer = '\0';
+}
+
+void GetLineRelitive(char* buffer, int relitivity) {
+    int piece = table.linePiece;
+    int offset = table.lineStart;
+    while (relitivity > 0) {
+        int initPiece = piece;
+        int initOffset = offset;
+        while (*(table.piece[piece].start + offset) != '\n') {
+            if (offset == table.piece[piece].length) {
+                piece++;
+                offset = 0;
+            }
+            offset++;
+        }
+        offset++;
+        if (piece == table.pieceCount && table.piece[table.pieceCount].length <= offset) {
+            piece = initPiece;
+            offset = initOffset;
+            return;
+        }
+        relitivity--;
+    }
+    while (relitivity < 0) {
+        if (offset == 0 && piece == 0) {
+            piece--;
+            relitivity = 0;
+            break;
+        }
+        if (offset != 0) {
+            if (piece != 0) {
+                piece--;
+                offset = table.piece[piece].length;
+            }
+            offset--;
+        }
+        if (*(table.piece[piece].start + offset) == '\n') {
+            if (offset != 0) {
+                if (piece != 0) {
+                    piece--;
+                    offset = table.piece[piece].length;
+                }
+                offset--;
             }
         }
-        line++;
-        offset--;
+        while (*(table.piece[piece].start + offset) != '\n') {
+            if (offset == 0) {
+                if (piece == 0) {
+                    break;
+                }
+                piece--;
+                offset = table.piece[table.linePiece].length;
+            }
+            offset--;
+        }
+        if (!(offset == 0 && piece == 0)) {
+            offset++;
+        }
+        relitivity++;
     }
-    return line;
+    GetLine(&buffer[COLUMN_OFFSET], liv.columns, piece, offset);
+}
+
+void FormatScreenLine(char* buffer, int row) {
+    if (row == liv.rows / 2) {
+        sprintf(buffer, "%-3d ", table.lineNumber);
+    } else {
+        sprintf(buffer, "%3d ", abs(row - (liv.rows / 2)));
+    }
+    GetLineRelitive(buffer, row - (liv.rows / 2));
 }
 
 void RefreshScreen() {
     printf(CURSOR_HOME);
     printf(ERASE_SCREEN);
-    for (int row = 0; row <= liv.rows; row++) {
-        char* line = GetRelitiveLine(row - (liv.rows / 2));
-        int lineLength = 0;
-        if (line != NULL) {
-            lineLength = strcspn(line, "\n");
-        }
-        if (row != liv.rows / 2) {
-            printf("\x1b[%d;0H%3d %.*s", row, abs(row - (liv.rows / 2)), lineLength, line);
-        } else {
-            printf("\x1b[%d;0H%-3d %.*s", row, liv.table.currentLineNumber, strcspn(liv.table.currentLine, "\n"), liv.table.currentLine);
-        }
+    for (int row = 1; row <= liv.rows; row++) {
+        char buffer[liv.columns + COLUMN_OFFSET + 4];
+        FormatScreenLine(buffer, row);
+        printf("\x1b[%d;0H%s", row, buffer);
     }
     printf("\x1b[%d;0H-%s-", liv.rows + 1, liv.fileName);
     printf("\x1b[%d;0Hliv :)", liv.rows + 2);
-    printf("\x1b[%d;%dH", liv.rows / 2, liv.cursorX + 5);
+    printf("\x1b[%d;%dH", liv.rows / 2, table.lineCursor + COLUMN_OFFSET + 1);
     fflush(stdout);
 }
 
 void LineNext() {
-    char* newLine = GetRelitiveLine(1);
-    if (newLine) {
-        liv.table.currentLine = newLine;
-        liv.table.currentLineNumber++;
+    int start = table.lineStart;
+    int piece = table.linePiece;
+    while (*(table.piece[table.linePiece].start + table.lineStart) != '\n') {
+        if (table.lineStart == table.piece[table.linePiece].length) {
+            table.linePiece++;
+            table.lineStart = 0;
+        }
+        table.lineStart++;
+    }
+    table.lineStart++;
+    if (table.linePiece == table.pieceCount && table.piece[table.pieceCount].length <= table.lineStart) {
+        table.lineStart = start;
+        table.linePiece = piece;
+        return;
+    }
+    table.lineNumber++;
+    table.lineLength = 0;
+    while (*(table.piece[table.linePiece].start + table.lineStart + table.lineLength) != '\n') {
+        table.lineLength++;
     }
 }
 
 void LinePrevious() {
-    char* newLine = GetRelitiveLine(-1);
-    if (newLine) {
-        liv.table.currentLine = newLine;
-        liv.table.currentLineNumber--;
+    if (table.lineStart != 0) {
+        if (table.linePiece != 0) {
+            table.linePiece--;
+            table.lineStart = table.piece[table.linePiece].length;
+        }
+        table.lineStart--;
+    }
+    if (*(table.piece[table.linePiece].start + table.lineStart) == '\n') {
+        if (table.lineStart != 0) {
+            if (table.linePiece != 0) {
+                table.linePiece--;
+                table.lineStart = table.piece[table.linePiece].length;
+            }
+            table.lineStart--;
+        }
+    }
+    while (*(table.piece[table.linePiece].start + table.lineStart) != '\n') {
+        if (table.lineStart == 0) {
+            if (table.linePiece == 0) {
+                break;
+            }
+            table.linePiece--;
+            table.lineStart = table.piece[table.linePiece].length;
+        }
+        table.lineStart--;
+    }
+    if (!(table.lineStart == 0 && table.linePiece == 0)) {
+        table.lineStart++;
+    }
+    if (table.lineNumber > 1) {
+        table.lineNumber--;
+    }
+    table.lineLength = 0;
+    while (*(table.piece[table.linePiece].start + table.lineStart + table.lineLength) != '\n') {
+        table.lineLength++;
     }
 }
 
 void CursorLeft() {
-    if (liv.cursorX > 0) { liv.cursorX--; }
+    if (table.lineCursor > 0) { table.lineCursor--; }
 }
 
 void CursorRight() {
-    if (liv.cursorX < liv.columns - 1) { liv.cursorX++; }
+    if (table.lineCursor < table.lineLength - 1) { table.lineCursor++; }
 }
 
 void ProssesKeyPress() {
