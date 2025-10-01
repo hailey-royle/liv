@@ -47,6 +47,19 @@ void ValidateArgs(int argc, char* argv[]) {
     liv.fileName = argv[1];
 }
 
+void SetLineLength() {
+    table.lineLength = 0;
+    while (*(table.piece[table.linePiece].start + table.lineStart + table.lineLength) != '\n') {
+        table.lineLength++;
+    }
+    if (table.lineLength > 0) {
+        table.lineLength--;
+    }
+    if (table.lineCursor > table.lineLength) {
+        table.lineCursor = table.lineLength;
+    }
+}
+
 void LoadFile() {
     size_t size = 0;
     FILE* filePointer = fopen(liv.fileName, "r");
@@ -59,7 +72,7 @@ void LoadFile() {
     table.piece[0].start = table.original;
     table.piece[0].length = fileLength;
     table.lineNumber++;
-    table.lineLength = strcspn(table.original, "\n");
+    SetLineLength();
 }
 
 void DisableRawMode() {
@@ -218,10 +231,7 @@ void LineNext() {
         return;
     }
     table.lineNumber++;
-    table.lineLength = 0;
-    while (*(table.piece[table.linePiece].start + table.lineStart + table.lineLength) != '\n') {
-        table.lineLength++;
-    }
+    SetLineLength();
 }
 
 void LinePrevious() {
@@ -257,10 +267,7 @@ void LinePrevious() {
     if (table.lineNumber > 1) {
         table.lineNumber--;
     }
-    table.lineLength = 0;
-    while (*(table.piece[table.linePiece].start + table.lineStart + table.lineLength) != '\n') {
-        table.lineLength++;
-    }
+    SetLineLength();
 }
 
 void CursorLeft() {
@@ -268,7 +275,7 @@ void CursorLeft() {
 }
 
 void CursorRight() {
-    if (table.lineCursor < table.lineLength - 1) { table.lineCursor++; }
+    if (table.lineCursor < table.lineLength) { table.lineCursor++; }
 }
 
 void ProssesKeyPress() {
