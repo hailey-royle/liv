@@ -55,9 +55,6 @@ void SetLineLength() {
     if (table.lineLength > 0) {
         table.lineLength--;
     }
-    if (table.lineCursor > table.lineLength) {
-        table.lineCursor = table.lineLength;
-    }
 }
 
 void LoadFile() {
@@ -231,6 +228,7 @@ void LineNext() {
         return;
     }
     table.lineNumber++;
+    table.lineCursor = 0;
     SetLineLength();
 }
 
@@ -267,6 +265,7 @@ void LinePrevious() {
     if (table.lineNumber > 1) {
         table.lineNumber--;
     }
+    table.lineCursor = 0;
     SetLineLength();
 }
 
