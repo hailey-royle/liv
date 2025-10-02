@@ -39,6 +39,54 @@ struct liv {
 };
 struct liv liv;
 
+void FindLineNext(int* originalPiece, int* originalOffset) {
+    int piece = *originalPiece;
+    int offset = *originalOffset;
+    while (*(table.piece[piece].start + offset) != '\n') {
+        if (table.piece[piece].length <= offset) {
+            piece++;
+            offset = 0;
+        }
+        offset++;
+    }
+    offset++;
+    if (table.pieceCount <= piece && table.piece[table.pieceCount].length <= offset) {
+        return;
+    }
+    *originalPiece = piece;
+    *originalOffset = offset;
+}
+
+void FindLinePrevious(int* originalPiece, int* originalOffset) {
+    int piece = *originalPiece;
+    int offset = *originalOffset;
+    for (int i = 0; i < 2; i++) {
+        if (offset == 0) {
+            if (piece == 0) {
+                break;
+            }
+            piece--;
+            offset = table.piece[piece].length;
+        }
+        offset--;
+    }
+    while (*(table.piece[piece].start + offset) != '\n') {
+        if (offset == 0) {
+            if (piece == 0) {
+                break;
+            }
+            piece--;
+            offset = table.piece[piece].length;
+        }
+        offset--;
+    }
+    if (!(offset == 0 && piece == 0)) {
+        offset++;
+    }
+    *originalPiece = piece;
+    *originalOffset = offset;
+}
+
 void SetLineLength() {
     table.lineLength = 0;
     while (*(table.piece[table.linePiece].start + table.lineStart + table.lineLength) != '\n') {
@@ -49,13 +97,28 @@ void SetLineLength() {
     }
 }
 
-void GetLine(char* buffer, int remaining, int piece, int offset) {
-    if (piece < 0) {
-        *buffer = '\n';
-        buffer++;
-        *buffer = '\0';
-        return;
+void MoveLineRelitive(int relitivity) {
+    while (relitivity > 0) {
+        int originalPiece = table.linePiece;
+        int originalOffset = table.lineStart;
+        FindLineNext(&table.linePiece, &table.lineStart);
+        if (table.linePiece != originalPiece || table.lineStart != originalOffset) {
+            table.lineNumber++;
+        }
+        relitivity--;
     }
+    while (relitivity < 0) {
+        FindLinePrevious(&table.linePiece, &table.lineStart);
+        if (table.lineNumber > 1) {
+            table.lineNumber--;
+        }
+        relitivity++;
+    }
+    SetLineLength();
+    table.lineCursor = 0;
+}
+
+void GetLine(char* buffer, int remaining, int piece, int offset) {
     while (*(table.piece[piece].start + offset) != '\n') {
         remaining--;
         if (remaining <= 1) {
@@ -76,122 +139,25 @@ void GetLine(char* buffer, int remaining, int piece, int offset) {
 }
 
 void GetLineRelitive(char* buffer, int relitivity) {
-    int piece = table.linePiece;
-    int offset = table.lineStart;
-    while (relitivity > 0) {
-        int initPiece = piece;
-        int initOffset = offset;
-        while (*(table.piece[piece].start + offset) != '\n') {
-            if (offset == table.piece[piece].length) {
-                piece++;
-                offset = 0;
-            }
-            offset++;
-        }
-        offset++;
-        if (piece == table.pieceCount && table.piece[table.pieceCount].length <= offset) {
-            piece = initPiece;
-            offset = initOffset;
-            return;
-        }
-        relitivity--;
-    }
-    while (relitivity < 0) {
-        if (offset == 0 && piece == 0) {
-            piece--;
-            relitivity = 0;
-            break;
-        }
-        if (offset != 0) {
-            if (piece != 0) {
-                piece--;
-                offset = table.piece[piece].length;
-            }
-            offset--;
-        }
-        if (*(table.piece[piece].start + offset) == '\n') {
-            if (offset != 0) {
-                if (piece != 0) {
-                    piece--;
-                    offset = table.piece[piece].length;
-                }
-                offset--;
-            }
-        }
-        while (*(table.piece[piece].start + offset) != '\n') {
-            if (offset == 0) {
-                if (piece == 0) {
-                    break;
-                }
-                piece--;
-                offset = table.piece[table.linePiece].length;
-            }
-            offset--;
-        }
-        if (!(offset == 0 && piece == 0)) {
-            offset++;
-        }
-        relitivity++;
-    }
-    GetLine(&buffer[COLUMN_OFFSET], liv.columns, piece, offset);
-}
-
-void LineNext() {
-    int start = table.lineStart;
-    int piece = table.linePiece;
-    while (*(table.piece[table.linePiece].start + table.lineStart) != '\n') {
-        if (table.lineStart == table.piece[table.linePiece].length) {
-            table.linePiece++;
-            table.lineStart = 0;
-        }
-        table.lineStart++;
-    }
-    table.lineStart++;
-    if (table.linePiece == table.pieceCount && table.piece[table.pieceCount].length <= table.lineStart) {
-        table.lineStart = start;
-        table.linePiece = piece;
+    int relitivePiece = table.linePiece;
+    int relitiveOffset = table.lineStart;
+    if (relitivity + table.lineNumber <= 0) {
         return;
     }
-    table.lineNumber++;
-    table.lineCursor = 0;
-    SetLineLength();
-}
-
-void LinePrevious() {
-    if (table.lineStart != 0) {
-        if (table.linePiece != 0) {
-            table.linePiece--;
-            table.lineStart = table.piece[table.linePiece].length;
-        }
-        table.lineStart--;
-    }
-    if (*(table.piece[table.linePiece].start + table.lineStart) == '\n') {
-        if (table.lineStart != 0) {
-            if (table.linePiece != 0) {
-                table.linePiece--;
-                table.lineStart = table.piece[table.linePiece].length;
-            }
-            table.lineStart--;
+    while (relitivity > 0) {
+        int originalPiece = relitivePiece;
+        int originalOffset = relitiveOffset;
+        FindLineNext(&relitivePiece, &relitiveOffset);
+        relitivity--;
+        if (relitivePiece == originalPiece && relitiveOffset <= originalOffset) {
+            return;
         }
     }
-    while (*(table.piece[table.linePiece].start + table.lineStart) != '\n') {
-        if (table.lineStart == 0) {
-            if (table.linePiece == 0) {
-                break;
-            }
-            table.linePiece--;
-            table.lineStart = table.piece[table.linePiece].length;
-        }
-        table.lineStart--;
+    while (relitivity < 0) {
+        FindLinePrevious(&relitivePiece, &relitiveOffset);
+        relitivity++;
     }
-    if (!(table.lineStart == 0 && table.linePiece == 0)) {
-        table.lineStart++;
-    }
-    if (table.lineNumber > 1) {
-        table.lineNumber--;
-    }
-    table.lineCursor = 0;
-    SetLineLength();
+    GetLine(&buffer[COLUMN_OFFSET], liv.columns, relitivePiece, relitiveOffset);
 }
 
 void CursorLeft() {
@@ -269,7 +235,7 @@ void RefreshScreen() {
     printf(CURSOR_HOME);
     printf(ERASE_SCREEN);
     for (int row = 1; row <= liv.rows; row++) {
-        char buffer[liv.columns + COLUMN_OFFSET + 4];
+        char buffer[liv.columns + COLUMN_OFFSET + 1];
         FormatScreenLine(buffer, row);
         printf("\x1b[%d;0H%s", row, buffer);
     }
@@ -283,8 +249,8 @@ void ProssesKeyPress() {
     char key;
     read(STDIN_FILENO, &key, 1);
     if      (key == 'q') { exit(0); }
-    else if (key == 'j') { LineNext(); }
-    else if (key == 'k') { LinePrevious(); }
+    else if (key == 'j') { MoveLineRelitive(1); }
+    else if (key == 'k') { MoveLineRelitive(-1); }
     else if (key == 'h') { CursorLeft(); }
     else if (key == 'l') { CursorRight(); }
 }
