@@ -1,5 +1,19 @@
+# todo
+
+## functions
+
+Insert
+
+# done
+
+## functions
+
 GetLineRelitive()
-    GetLineNext()
-    GetLinePrevious()
-    MoveLine()
-SetLineRelitive()
+    FindLineNext()
+    FindLinePrevious()
+    GetLine()
+MoveLineRelitive()
+    FindLineNext()
+    FindLinePrevious()
+CursorLeft()
+CursorRight()

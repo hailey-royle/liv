@@ -145,7 +145,7 @@ void GetLineRelitive(char* buffer, int relitivity) {
         FindLinePrevious(&relitivePiece, &relitiveOffset);
         relitivity++;
     }
-    GetLine(&buffer[COLUMN_OFFSET], liv.columns, relitivePiece, relitiveOffset);
+    GetLine(&buffer[COLUMN_OFFSET], liv.columns + 1, relitivePiece, relitiveOffset);
 }
 
 void CursorLeft() {
@@ -153,7 +153,8 @@ void CursorLeft() {
 }
 
 void CursorRight() {
-    if (*(table.piece[table.linePiece].start + table.lineStart + table.lineCursor) != '\n') { table.lineCursor++; }
+    if (*(table.piece[table.linePiece].start + table.lineStart + table.lineCursor) != '\n' 
+            && table.lineCursor < liv.columns - 2) { table.lineCursor++; }
 }
 
 void ValidateArgs(int argc, char* argv[]) {
@@ -198,7 +199,7 @@ void EnableRawMode() {
 void GetScreenSize() {
     struct winsize ws;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws);
-    liv.columns = ws.ws_col - COLUMN_OFFSET;
+    liv.columns = ws.ws_col - COLUMN_OFFSET + 1;
     liv.rows = ws.ws_row;
     liv.centerRow = (liv.rows / 2) + 1;
 }
