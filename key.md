@@ -1,53 +1,50 @@
+[command - count - motion]
 
 # implemented
 
+## command
+
 - q - quit
+
+## motion
+
 - h - cursor left
 - l - cursor right
 - j - line down
 - k - line up
 
-# ideas
+# planned
 
-start of line
-start of content
-left gap
-left word
-left
+## command
 
-end of line
-right gap
-right word
-right
+- insert
+- delete
+- change
+- yeet
+- put
+- search
+- undo
+- redo
+- write
+- go to line [count]
 
-start of file
-start of screen
-start of paragraph
-up
+## count
 
-end of file
-end of screen
-end of paragraph
-down
+- do thing x times
 
-move
-select
-insert
-delete
-change
-copy
+## motion
 
-search
-next 
-previous 
+- start of [jump]
+- end of [jump]
 
-inner
+- [jumps]
+- word
+- whitespace
+- line
+- paragraph
+- file
 - (
 - [
 - {
 - "
 - '
-
-escape
-undo
-redo
