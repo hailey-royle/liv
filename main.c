@@ -10,7 +10,6 @@
 #define CURSOR_HOME "\x1b[H"
 #define ERASE_SCREEN "\x1b[2J"
 #define COLUMN_OFFSET 4
-#define BOTTOM_OFFSET 2
 
 struct termios NormalTermios;
 
@@ -26,7 +25,6 @@ struct table {
     int pieceCount;
     int linePiece;
     int lineStart;
-    int lineLength;
     int lineNumber;
     int lineCursor;
 };
@@ -36,6 +34,7 @@ struct liv {
     char* fileName;
     int columns;
     int rows;
+    int centerRow;
 };
 struct liv liv;
 
@@ -87,16 +86,6 @@ void FindLinePrevious(int* originalPiece, int* originalOffset) {
     *originalOffset = offset;
 }
 
-void SetLineLength() {
-    table.lineLength = 0;
-    while (*(table.piece[table.linePiece].start + table.lineStart + table.lineLength) != '\n') {
-        table.lineLength++;
-    }
-    if (table.lineLength > 0) {
-        table.lineLength--;
-    }
-}
-
 void MoveLineRelitive(int relitivity) {
     while (relitivity > 0) {
         int originalPiece = table.linePiece;
@@ -114,7 +103,6 @@ void MoveLineRelitive(int relitivity) {
         }
         relitivity++;
     }
-    SetLineLength();
     table.lineCursor = 0;
 }
 
@@ -165,7 +153,7 @@ void CursorLeft() {
 }
 
 void CursorRight() {
-    if (table.lineCursor < table.lineLength) { table.lineCursor++; }
+    if (*(table.piece[table.linePiece].start + table.lineStart + table.lineCursor) != '\n') { table.lineCursor++; }
 }
 
 void ValidateArgs(int argc, char* argv[]) {
@@ -188,7 +176,6 @@ void LoadFile() {
     table.piece[0].start = table.original;
     table.piece[0].length = fileLength;
     table.lineNumber++;
-    SetLineLength();
 }
 
 void DisableRawMode() {
@@ -212,7 +199,8 @@ void GetScreenSize() {
     struct winsize ws;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws);
     liv.columns = ws.ws_col - COLUMN_OFFSET;
-    liv.rows = ws.ws_row - BOTTOM_OFFSET;
+    liv.rows = ws.ws_row;
+    liv.centerRow = (liv.rows / 2) + 1;
 }
 
 void InitLiv(int argc, char* argv[]) {
@@ -223,12 +211,12 @@ void InitLiv(int argc, char* argv[]) {
 }
 
 void FormatScreenLine(char* buffer, int row) {
-    if (row == liv.rows / 2) {
+    if (row == liv.centerRow) {
         sprintf(buffer, "%-3d ", table.lineNumber);
     } else {
-        sprintf(buffer, "%3d ", abs(row - (liv.rows / 2)));
+        sprintf(buffer, "%3d ", abs(row - liv.centerRow));
     }
-    GetLineRelitive(buffer, row - (liv.rows / 2));
+    GetLineRelitive(buffer, row - liv.centerRow);
 }
 
 void RefreshScreen() {
@@ -239,9 +227,7 @@ void RefreshScreen() {
         FormatScreenLine(buffer, row);
         printf("\x1b[%d;0H%s", row, buffer);
     }
-    printf("\x1b[%d;0H-%s-", liv.rows + 1, liv.fileName);
-    printf("\x1b[%d;0Hliv :)", liv.rows + 2);
-    printf("\x1b[%d;%dH", liv.rows / 2, table.lineCursor + COLUMN_OFFSET + 1);
+    printf("\x1b[%d;%dH", liv.centerRow, table.lineCursor + COLUMN_OFFSET + 1);
     fflush(stdout);
 }
 
