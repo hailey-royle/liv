@@ -7,8 +7,7 @@
 
 #define START_ALT_SCREEN "\x1b[?1049h"
 #define END_ALT_SCREEN "\x1b[?1049l"
-#define CURSOR_HOME "\x1b[H"
-#define ERASE_SCREEN "\x1b[2J"
+#define ERASE_LINE "\x1b[2K"
 #define COLUMN_OFFSET 4
 
 struct termios NormalTermios;
@@ -145,7 +144,7 @@ void GetLineRelitive(char* buffer, int relitivity) {
         FindLinePrevious(&relitivePiece, &relitiveOffset);
         relitivity++;
     }
-    GetLine(&buffer[COLUMN_OFFSET], liv.columns + 1, relitivePiece, relitiveOffset);
+    GetLine(buffer, liv.columns + 1, relitivePiece, relitiveOffset);
 }
 
 void CursorLeft() {
@@ -211,22 +210,16 @@ void InitLiv(int argc, char* argv[]) {
     GetScreenSize();
 }
 
-void FormatScreenLine(char* buffer, int row) {
-    if (row == liv.centerRow) {
-        sprintf(buffer, "%-3d ", table.lineNumber);
-    } else {
-        sprintf(buffer, "%3d ", abs(row - liv.centerRow));
-    }
-    GetLineRelitive(buffer, row - liv.centerRow);
-}
-
 void RefreshScreen() {
-    printf(CURSOR_HOME);
-    printf(ERASE_SCREEN);
     for (int row = 1; row <= liv.rows; row++) {
         char buffer[liv.columns + COLUMN_OFFSET + 1];
-        FormatScreenLine(buffer, row);
-        printf("\x1b[%d;0H%s", row, buffer);
+        if (row == liv.centerRow) {
+            sprintf(buffer, "%-3d ", table.lineNumber);
+        } else {
+            sprintf(buffer, "%3d ", abs(row - liv.centerRow));
+        }
+        GetLineRelitive(&buffer[COLUMN_OFFSET], row - liv.centerRow);
+        printf("\x1b[%d;0H%s%s", row, ERASE_LINE, buffer);
     }
     printf("\x1b[%d;%dH", liv.centerRow, table.lineCursor + COLUMN_OFFSET + 1);
     fflush(stdout);
