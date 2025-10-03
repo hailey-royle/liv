@@ -21,6 +21,7 @@ struct table {
     struct piece piece[256];
     char* original;
     char* added;
+    int addedLength;
     int pieceCount;
     int linePiece;
     int lineStart;
@@ -36,6 +37,16 @@ struct liv {
     int centerRow;
 };
 struct liv liv;
+
+void BufferAppend(char* buffer, int* bufferLength, char* append, int appendLength) {
+    char* new = realloc(buffer, *bufferLength + appendLength);
+    if (new == NULL) {
+        return;
+    }
+    memcpy(&new[*bufferLength], append, appendLength);
+    buffer = new;
+    *bufferLength += appendLength;
+}
 
 void FindLineNext(int* originalPiece, int* originalOffset) {
     int piece = *originalPiece;
@@ -148,12 +159,15 @@ void GetLineRelitive(char* buffer, int relitivity) {
 }
 
 void CursorLeft() {
-    if (table.lineCursor > 0) { table.lineCursor--; }
+    if (table.lineCursor > 0) {
+        table.lineCursor--;
+    }
 }
 
 void CursorRight() {
-    if (*(table.piece[table.linePiece].start + table.lineStart + table.lineCursor) != '\n' 
-            && table.lineCursor < liv.columns - 2) { table.lineCursor++; }
+    if (*(table.piece[table.linePiece].start + table.lineStart + table.lineCursor) != '\n' && table.lineCursor < liv.columns - 2) {
+        table.lineCursor++;
+    }
 }
 
 void ValidateArgs(int argc, char* argv[]) {
