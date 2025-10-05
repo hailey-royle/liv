@@ -226,14 +226,13 @@ void InitLiv(int argc, char* argv[]) {
 
 void RefreshScreen() {
     for (int row = 1; row <= liv.rows; row++) {
-        char buffer[liv.columns + COLUMN_OFFSET + 1];
+        char buffer[liv.columns + 1];
+        GetLineRelitive(buffer, row - liv.centerRow);
         if (row == liv.centerRow) {
-            sprintf(buffer, "%-3d ", table.lineNumber);
+            printf("\x1b[%d;0H%s%-3d %s", row, ERASE_LINE, table.lineNumber, buffer);
         } else {
-            sprintf(buffer, "%3d ", abs(row - liv.centerRow));
+            printf("\x1b[%d;0H%s%3d %s", row, ERASE_LINE, abs(row - liv.centerRow), buffer);
         }
-        GetLineRelitive(&buffer[COLUMN_OFFSET], row - liv.centerRow);
-        printf("\x1b[%d;0H%s%s", row, ERASE_LINE, buffer);
     }
     printf("\x1b[%d;%dH", liv.centerRow, table.lineCursor + COLUMN_OFFSET + 1);
     fflush(stdout);
