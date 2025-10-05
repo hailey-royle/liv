@@ -7,7 +7,7 @@
 
 #define START_ALT_SCREEN "\x1b[?1049h"
 #define END_ALT_SCREEN "\x1b[?1049l"
-#define ERASE_LINE "\x1b[2K"
+#define ERASE_SCREEN "\x1b[2J"
 #define COLUMN_OFFSET 4
 
 struct termios NormalTermios;
@@ -225,13 +225,14 @@ void InitLiv(int argc, char* argv[]) {
 }
 
 void RefreshScreen() {
+    printf(ERASE_SCREEN);
     for (int row = 1; row <= liv.rows; row++) {
         char buffer[liv.columns + 1];
         GetLineRelitive(buffer, row - liv.centerRow);
         if (row == liv.centerRow) {
-            printf("\x1b[%d;0H%s%-3d %s", row, ERASE_LINE, table.lineNumber, buffer);
+            printf("\x1b[%d;0H%-3d %s", row, table.lineNumber, buffer);
         } else {
-            printf("\x1b[%d;0H%s%3d %s", row, ERASE_LINE, abs(row - liv.centerRow), buffer);
+            printf("\x1b[%d;0H%3d %s", row, abs(row - liv.centerRow), buffer);
         }
     }
     printf("\x1b[%d;%dH", liv.centerRow, table.lineCursor + COLUMN_OFFSET + 1);
