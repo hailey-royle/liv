@@ -136,28 +136,6 @@ void GetLine(char* buffer, int remaining, int piece, int offset) {
     *buffer = '\0';
 }
 
-void GetLineRelitive(char* buffer, int relitivity) {
-    int relitivePiece = table.linePiece;
-    int relitiveOffset = table.lineStart;
-    if (relitivity + table.lineNumber <= 0) {
-        return;
-    }
-    while (relitivity > 0) {
-        int originalPiece = relitivePiece;
-        int originalOffset = relitiveOffset;
-        FindLineNext(&relitivePiece, &relitiveOffset);
-        relitivity--;
-        if (relitivePiece == originalPiece && relitiveOffset <= originalOffset) {
-            return;
-        }
-    }
-    while (relitivity < 0) {
-        FindLinePrevious(&relitivePiece, &relitiveOffset);
-        relitivity++;
-    }
-    GetLine(buffer, liv.columns + 1, relitivePiece, relitiveOffset);
-}
-
 void CursorLeft() {
     if (table.lineCursor > 0) {
         table.lineCursor--;
@@ -224,17 +202,51 @@ void InitLiv(int argc, char* argv[]) {
     GetScreenSize();
 }
 
+void RefreshLineCenter() {
+    char buffer[liv.columns + 1];
+    GetLine(buffer, liv.columns + 1, table.linePiece, table.lineStart);
+    printf("\x1b[%d;0H%-3d %s", liv.centerRow, table.lineNumber, buffer);
+}
+
+void RefreshLinesPrevious() {
+    char buffer[liv.columns + 1];
+    int piece = table.linePiece;
+    int offset = table.lineStart;
+    for (int row = liv.centerRow - 1; row > 0; row--) {
+        int startPiece = piece;
+        int startOffset = offset;
+        FindLinePrevious(&piece, &offset);
+        if (startPiece != piece || startOffset != offset) {
+            GetLine(buffer, liv.columns + 1, piece, offset);
+        } else {
+            buffer[0] = '\0';
+        }
+        printf("\x1b[%d;0H%3d %s", row, abs(row - liv.centerRow), buffer);
+    }
+}
+
+void RefreshLinesNext() {
+    char buffer[liv.columns + 1];
+    int piece = table.linePiece;
+    int offset = table.lineStart;
+    for (int row = liv.centerRow + 1; row <= liv.rows; row++) {
+        int startPiece = piece;
+        int startOffset = offset;
+        FindLineNext(&piece, &offset);
+        if (startPiece != piece || startOffset != offset) {
+            GetLine(buffer, liv.columns + 1, piece, offset);
+        } else {
+            buffer[0] = '\0';
+        }
+        printf("\x1b[%d;0H%3d %s", row, abs(row - liv.centerRow), buffer);
+    }
+}
+
 void RefreshScreen() {
     printf(ERASE_SCREEN);
-    for (int row = 1; row <= liv.rows; row++) {
-        char buffer[liv.columns + 1];
-        GetLineRelitive(buffer, row - liv.centerRow);
-        if (row == liv.centerRow) {
-            printf("\x1b[%d;0H%-3d %s", row, table.lineNumber, buffer);
-        } else {
-            printf("\x1b[%d;0H%3d %s", row, abs(row - liv.centerRow), buffer);
-        }
-    }
+    RefreshLineCenter();
+    RefreshLinesNext();
+    RefreshLinesPrevious();
     printf("\x1b[%d;%dH", liv.centerRow, table.lineCursor + COLUMN_OFFSET + 1);
     fflush(stdout);
 }
