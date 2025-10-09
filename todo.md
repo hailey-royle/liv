@@ -2,7 +2,20 @@
 
 ## functions
 
-Insert
+EnterInsertMode()
+    SplitPiece()
+    InsertPiece()
+
+Insert(key)
+    if key is \b 
+        if length is 0
+            RemovePiece()
+            ShiftPiece(-1)
+        else 
+            offset--
+    else
+        Append(key)
+        length++
 
 # done
 

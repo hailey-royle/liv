@@ -35,6 +35,7 @@ struct liv {
     int columns;
     int rows;
     int centerRow;
+    int insertMode;
 };
 struct liv liv;
 
@@ -48,22 +49,54 @@ void BufferAppend(char* buffer, int* bufferLength, char* append, int appendLengt
     *bufferLength += appendLength;
 }
 
+void ShiftPieceTable(int shift) {
+    for (int piece = table.pieceCount; piece > table.linePiece; piece--) {
+        table.piece[piece + shift] = table.piece[piece];
+    }
+    table.pieceCount += shift;
+}
+
+void SplitPiece(int shift) {
+    ShiftPieceTable(shift);
+    table.piece[table.linePiece + shift].start = table.piece[table.linePiece].start + table.lineCursor;
+    table.piece[table.linePiece + shift].length = table.piece[table.linePiece].length - table.lineCursor;
+    table.piece[table.linePiece].length = table.lineCursor;
+}
+
+void InsertChar(char key) { // remove then add case
+    if (key == '\b') {
+        if (table.piece[table.linePiece].length == 0) {
+        } else {
+            table.piece[table.linePiece].length--;
+        }
+    } else {
+        BufferAppend(table.added, &table.addedLength, &key, 1);
+    }
+}
+
+void EnterInsertMode() {
+    liv.insertMode = 1;
+    SplitPiece(2);
+    table.linePiece++;
+    table.piece[table.linePiece].length = 0;
+    table.piece[table.linePiece].start = table.added + table.addedLength;
+}
+
 void FindLineNext(int* originalPiece, int* originalOffset) {
     int piece = *originalPiece;
     int offset = *originalOffset;
     while (*(table.piece[piece].start + offset) != '\n') {
-        if (table.piece[piece].length <= offset) {
+        if (offset >= table.piece[piece].length) {
             piece++;
             offset = 0;
         }
         offset++;
     }
     offset++;
-    if (table.pieceCount <= piece && table.piece[table.pieceCount].length <= offset) {
-        return;
+    if (offset < table.piece[piece].length) {
+        *originalPiece = piece;
+        *originalOffset = offset;
     }
-    *originalPiece = piece;
-    *originalOffset = offset;
 }
 
 void FindLinePrevious(int* originalPiece, int* originalOffset) {
@@ -71,7 +104,7 @@ void FindLinePrevious(int* originalPiece, int* originalOffset) {
     int offset = *originalOffset;
     for (int i = 0; i < 2; i++) {
         if (offset == 0) {
-            if (piece == 0) {
+            if (piece == 1) {
                 break;
             }
             piece--;
@@ -81,7 +114,7 @@ void FindLinePrevious(int* originalPiece, int* originalOffset) {
     }
     while (*(table.piece[piece].start + offset) != '\n') {
         if (offset == 0) {
-            if (piece == 0) {
+            if (piece == 1) {
                 break;
             }
             piece--;
@@ -89,7 +122,7 @@ void FindLinePrevious(int* originalPiece, int* originalOffset) {
         }
         offset--;
     }
-    if (!(offset == 0 && piece == 0)) {
+    if (!(offset == 0 && piece == 1)) {
         offset++;
     }
     *originalPiece = piece;
@@ -123,7 +156,7 @@ void GetLine(char* buffer, int remaining, int piece, int offset) {
             break;
         }
         if (offset >= table.piece[piece].length) {
-            if (piece >= table.pieceCount) {
+            if (piece >= table.pieceCount - 1) {
                 break;
             }
             piece++;
@@ -150,7 +183,7 @@ void CursorRight() {
 
 void ValidateArgs(int argc, char* argv[]) {
     if (argc != 2) {
-        printf("Format: $ liv <fileName>");
+        printf("Format: $ liv <fileName>\n");
         exit(1);
     }
     liv.fileName = argv[1];
@@ -165,9 +198,15 @@ void LoadFile() {
     }
     int fileLength = getdelim(&table.original, &size, '\0', filePointer);
     fclose(filePointer);
-    table.piece[0].start = table.original;
-    table.piece[0].length = fileLength;
-    table.lineNumber++;
+    table.piece[0].start = table.added;
+    table.piece[0].length = 0;
+    table.piece[1].start = table.original;
+    table.piece[1].length = fileLength;
+    table.piece[2].start = table.added;
+    table.piece[2].length = 0;
+    table.pieceCount = 2;
+    table.linePiece = 1;
+    table.lineNumber = 1;
 }
 
 void DisableRawMode() {
@@ -254,11 +293,17 @@ void RefreshScreen() {
 void ProssesKeyPress() {
     char key;
     read(STDIN_FILENO, &key, 1);
-    if      (key == 'q') { exit(0); }
-    else if (key == 'j') { MoveLineRelitive(1); }
-    else if (key == 'k') { MoveLineRelitive(-1); }
-    else if (key == 'h') { CursorLeft(); }
-    else if (key == 'l') { CursorRight(); }
+    if (liv.insertMode) {
+        if      (key == '\e'){ liv.insertMode = 0; }
+        else                 { InsertChar(key); }
+    } else {
+        if      (key == 'q') { exit(0); }
+        else if (key == 'i') { EnterInsertMode(); }
+        else if (key == 'j') { MoveLineRelitive(1); }
+        else if (key == 'k') { MoveLineRelitive(-1); }
+        else if (key == 'h') { CursorLeft(); }
+        else if (key == 'l') { CursorRight(); }
+    }
 }
 
 void RunLiv() {
