@@ -17,34 +17,38 @@
 
 ## command
 
-- insert
-- delete
-- change
-- yeet
-- put
-- search
-- undo
-- redo
-- write
-- go to line [count]
+- i - insert
+- a - append
+- d - delete
+- c - change
+- y - yeet
+- t - tape
+- s - search
+- u - undo
+- r - redo
+- w - write
+- g - go to line [count]
+- m - find and replace
+- n - repeat command
 
 ## count
 
-- do thing x times
+- *x* - do thing x times
 
 ## motion
 
-- start of [jump]
-- end of [jump]
-
-- [jumps]
-- word
-- whitespace
-- line
-- paragraph
-- file
-- (
-- [
-- {
-- "
-- '
+- b - start of word
+- e - end of word
+-' '- start of whitespace
+-' '- end of whitespace
+- x - start of line
+- v - end of line
+- o - start of paragraph
+- p - end of paragraph
+- f - start of file
+- z - end of file
+- (\\) - (
+- [\\] - [
+- {\\} - {
+- " - "
+- ' - '
