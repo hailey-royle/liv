@@ -31,6 +31,11 @@ struct table {
 };
 struct table table;
 
+enum mode {
+    COMMAND,
+    INSERT
+};
+
 struct liv {
     char* fileName;
     int columns;
@@ -39,6 +44,7 @@ struct liv {
     int lineNumber;
     int lineLength;
     int cursor;
+    enum mode mode;
 };
 struct liv liv;
 
@@ -117,6 +123,7 @@ void InitScreen() {
     ColumnOffset(table.lineCount);
     liv.lineNumber = 1;
     liv.cursor = 1;
+    liv.mode = COMMAND;
 }
 
 void WriteLine(char* buffer, int count, int line) {
@@ -198,11 +205,16 @@ void CursorRight() {
 void ProssesKeyPress() {
     char key;
     read(STDIN_FILENO, &key, 1);
-    if      (key == 'q') { exit(0); }
-    else if (key == 'j') { LineDown(); }
-    else if (key == 'k') { LineUp(); }
-    else if (key == 'h') { CursorLeft(); }
-    else if (key == 'l') { CursorRight(); }
+    if (liv.mode == INSERT) {
+        if (key == 0x1b) { liv.mode = COMMAND; }
+    } else {
+        if      (key == 'q') { exit(0); }
+        else if (key == 'i') { liv.mode = INSERT; }
+        else if (key == 'j') { LineDown(); }
+        else if (key == 'k') { LineUp(); }
+        else if (key == 'h') { CursorLeft(); }
+        else if (key == 'l') { CursorRight(); }
+    }
 }
 
 void RunLiv() {
