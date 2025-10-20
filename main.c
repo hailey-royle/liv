@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <termios.h>
 #include <sys/ioctl.h>
+
 #define START_ALT_SCREEN "\x1b[?1049h"
 #define END_ALT_SCREEN "\x1b[?1049l"
 #define ERASE_SCREEN "\x1b[2J"
@@ -36,6 +37,7 @@ struct liv {
     int rows;
     int columnOffset;
     int lineNumber;
+    int lineLength;
     int cursor;
 };
 struct liv liv;
@@ -160,6 +162,7 @@ void RefreshScreen() {
             printf("\x1b[%d;0H%*d %s", row, liv.columnOffset - 1, row - (liv.rows / 2), buffer);
         } else {
             printf("\x1b[%d;0H%-*d %s", row, liv.columnOffset - 1, liv.lineNumber, buffer);
+            liv.lineLength = strlen(buffer);
         }
     }
     printf("\x1b[%d;%dH", (liv.rows / 2), liv.cursor + liv.columnOffset);
@@ -187,7 +190,7 @@ void CursorLeft() {
 }
 
 void CursorRight() {
-    if (liv.cursor < liv.columns - liv.columnOffset) {
+    if (liv.cursor < liv.columns - liv.columnOffset && liv.cursor < liv.lineLength) {
         liv.cursor++;
     }
 }
