@@ -8,7 +8,6 @@
 #define END_ALT_SCREEN "\x1b[?1049l"
 #define ERASE_SCREEN "\x1b[2J"
 #define COLUMN_OFFSET 4
-#define CENTER_ROW (liv.rows / 2) + 1
 
 struct termios NormalTermios;
 
@@ -143,18 +142,18 @@ void WriteLine(char* buffer, int count, int line) {
 
 void RefreshScreen() {
     printf(ERASE_SCREEN);
-    for (int row = 1; row < liv.rows; row++) {
+    for (int row = 1; row <= liv.rows; row++) {
         char buffer[liv.columns - COLUMN_OFFSET + 1] = {};
-        WriteLine(buffer, liv.columns - COLUMN_OFFSET + 1, row - CENTER_ROW + liv.lineNumber - 2);
-        if (row < CENTER_ROW) {
-            printf("\x1b[%d;0H%3d %s", row, abs(row - CENTER_ROW), buffer);
-        } else if (row > CENTER_ROW) {
-            printf("\x1b[%d;0H%3d %s", row, row - CENTER_ROW, buffer);
+        WriteLine(buffer, liv.columns - COLUMN_OFFSET + 1, row - (liv.rows / 2) + liv.lineNumber);
+        if (row < (liv.rows / 2)) {
+            printf("\x1b[%d;0H%3d %s", row, abs(row - (liv.rows / 2)), buffer);
+        } else if (row > (liv.rows / 2)) {
+            printf("\x1b[%d;0H%3d %s", row, row - (liv.rows / 2), buffer);
         } else {
-            printf("\x1b[%d;0H%-3d %s", CENTER_ROW, liv.lineNumber, buffer);
+            printf("\x1b[%d;0H%-3d %s", row, liv.lineNumber, buffer);
         }
     }
-    printf("\x1b[%d;%dH", CENTER_ROW, liv.cursor + COLUMN_OFFSET);
+    printf("\x1b[%d;%dH", (liv.rows / 2), liv.cursor + COLUMN_OFFSET);
     fflush(stdout);
 }
 
