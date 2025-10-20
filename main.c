@@ -7,7 +7,6 @@
 #define START_ALT_SCREEN "\x1b[?1049h"
 #define END_ALT_SCREEN "\x1b[?1049l"
 #define ERASE_SCREEN "\x1b[2J"
-#define COLUMN_OFFSET 4
 
 struct termios NormalTermios;
 
@@ -35,6 +34,7 @@ struct liv {
     char* fileName;
     int columns;
     int rows;
+    int columnOffset;
     int lineNumber;
     int cursor;
 };
@@ -98,9 +98,21 @@ void GetScreenSize() {
     liv.rows = winsize.ws_row;
 }
 
+void ColumnOffset(int lines) {
+    while (lines > 0) {
+        lines /= 10;
+        liv.columnOffset++;
+    }
+    liv.columnOffset++;
+    if (liv.columnOffset < 4) {
+        liv.columnOffset = 4;
+    }
+}
+
 void InitScreen() {
     EnableRawMode();
     GetScreenSize();
+    ColumnOffset(table.lineCount);
     liv.lineNumber = 1;
     liv.cursor = 1;
 }
@@ -143,17 +155,17 @@ void WriteLine(char* buffer, int count, int line) {
 void RefreshScreen() {
     printf(ERASE_SCREEN);
     for (int row = 1; row <= liv.rows; row++) {
-        char buffer[liv.columns - COLUMN_OFFSET + 1] = {};
-        WriteLine(buffer, liv.columns - COLUMN_OFFSET + 1, row - (liv.rows / 2) + liv.lineNumber);
+        char buffer[liv.columns - liv.columnOffset + 1] = {};
+        WriteLine(buffer, liv.columns - liv.columnOffset + 1, row - (liv.rows / 2) + liv.lineNumber);
         if (row < (liv.rows / 2)) {
-            printf("\x1b[%d;0H%3d %s", row, abs(row - (liv.rows / 2)), buffer);
+            printf("\x1b[%d;0H%*d %s", row, liv.columnOffset - 1, abs(row - (liv.rows / 2)), buffer);
         } else if (row > (liv.rows / 2)) {
-            printf("\x1b[%d;0H%3d %s", row, row - (liv.rows / 2), buffer);
+            printf("\x1b[%d;0H%*d %s", row, liv.columnOffset - 1, row - (liv.rows / 2), buffer);
         } else {
-            printf("\x1b[%d;0H%-3d %s", row, liv.lineNumber, buffer);
+            printf("\x1b[%d;0H%-*d %s", row, liv.columnOffset - 1, liv.lineNumber, buffer);
         }
     }
-    printf("\x1b[%d;%dH", (liv.rows / 2), liv.cursor + COLUMN_OFFSET);
+    printf("\x1b[%d;%dH", (liv.rows / 2), liv.cursor + liv.columnOffset);
     fflush(stdout);
 }
 
@@ -178,7 +190,7 @@ void CursorLeft() {
 }
 
 void CursorRight() {
-    if (liv.cursor < liv.columns - COLUMN_OFFSET) {
+    if (liv.cursor < liv.columns - liv.columnOffset) {
         liv.cursor++;
     }
 }
