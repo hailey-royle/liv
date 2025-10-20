@@ -118,10 +118,7 @@ void InitScreen() {
 }
 
 void WriteLine(char* buffer, int count, int line) {
-    if (line < 1) {
-        return;
-    }
-    if (line > table.lineCount) {
+    if (line < 1 || line > table.lineCount) {
         return;
     }
     int piece = 0;
