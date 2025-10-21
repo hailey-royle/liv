@@ -252,16 +252,16 @@ void InsertInit() {
     table.pieceCurrent = piece + 1;
 }
 
-void LineUp() {
-    if (liv.lineNumber > 1) {
-        liv.lineNumber--;
+void LineDown() {
+    if (liv.lineNumber < table.lineCount) {
+        liv.lineNumber++;
         liv.cursor = 1;
     }
 }
 
-void LineDown() {
-    if (liv.lineNumber < table.lineCount) {
-        liv.lineNumber++;
+void LineUp() {
+    if (liv.lineNumber > 1) {
+        liv.lineNumber--;
         liv.cursor = 1;
     }
 }
