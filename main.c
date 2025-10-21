@@ -9,10 +9,16 @@
 #define END_ALT_SCREEN "\x1b[?1049l"
 #define ERASE_SCREEN "\x1b[2J"
 
+#define BACKSPACE 127
+#define NEWLINE 13
+
+#define ORIGINAL 1
+#define APPEND 0
+
 struct termios NormalTermios;
 
 struct piece {
-    char* buffer;
+    int buffer;
     int offset;
     int length;
 };
@@ -24,17 +30,12 @@ struct buffer {
 
 struct table {
     struct piece* piece;
-    struct buffer original;
-    struct buffer added;
+    struct buffer buffer[2];
+    int pieceCurrent;
     int pieceCount;
     int lineCount;
 };
 struct table table;
-
-enum mode {
-    COMMAND,
-    INSERT
-};
 
 struct liv {
     char* fileName;
@@ -44,7 +45,6 @@ struct liv {
     int lineNumber;
     int lineLength;
     int cursor;
-    enum mode mode;
 };
 struct liv liv;
 
@@ -63,10 +63,10 @@ void LoadFile() {
         printf("File: '%s' not found", liv.fileName);
         exit(1);
     }
-    table.original.length = getdelim(&table.original.data, &size, '\1', fp);
+    table.buffer[ORIGINAL].length = getdelim(&table.buffer[ORIGINAL].data, &size, '\1', fp);
     fclose(fp);
-    for (int i = 0; i < table.original.length; i++) {
-        if (table.original.data[i] == '\n') {
+    for (int i = 0; i < table.buffer[ORIGINAL].length; i++) {
+        if (table.buffer[ORIGINAL].data[i] == '\n') {
             table.lineCount++;
         }
     }
@@ -74,12 +74,22 @@ void LoadFile() {
 
 void InitPieceTable() {
     struct piece* new = realloc(table.piece, sizeof(struct piece));
-    if (new == NULL) { return; }
+    if (new == NULL) {
+        printf("realloc error");
+        exit(1);
+    }
     table.piece = new;
-    table.piece[0].buffer = table.original.data;
+    table.piece[0].buffer = ORIGINAL;
     table.piece[0].offset = 0;
-    table.piece[0].length = table.original.length;
+    table.piece[0].length = table.buffer[ORIGINAL].length;
     table.pieceCount = 1;
+    table.pieceCurrent = -1;
+    table.buffer[APPEND].data = malloc(1);
+    if (table.buffer[APPEND].data == NULL) {
+        printf("malloc error");
+        exit(1);
+    }
+    table.buffer[APPEND].data[0] = '\0';
 }
 
 void DisableRawMode() {
@@ -123,7 +133,20 @@ void InitScreen() {
     ColumnOffset(table.lineCount);
     liv.lineNumber = 1;
     liv.cursor = 1;
-    liv.mode = COMMAND;
+}
+
+void FindLine(int* piece, int* offset, int line) {
+    while (line > 1) {
+        if (*offset >= table.piece[*piece].length) {
+            *piece += 1;
+            *offset = 0;
+            continue;
+        }
+        if (table.buffer[table.piece[*piece].buffer].data[table.piece[*piece].offset + *offset] == '\n') {
+            line--;
+        }
+        *offset += 1;
+    }
 }
 
 void WriteLine(char* buffer, int count, int line) {
@@ -132,25 +155,17 @@ void WriteLine(char* buffer, int count, int line) {
     }
     int piece = 0;
     int offset = 0;
-    while (line > 1) {
-        if (table.piece[piece].buffer[table.piece[piece].offset + offset] != '\n') {
-            if (offset >= table.piece[piece].length) {
-                piece++;
-                offset = 0;
-            } else {
-                offset++;
-            }
-        } else {
-            offset++;
-            line--;
-        }
-    }
-    while (table.piece[piece].buffer[table.piece[piece].offset + offset] != '\n' && count >= 1) {
-        if (table.piece[piece].length < offset) {
+    FindLine(&piece, &offset, line);
+    while (count >= 1) {
+        if (table.piece[piece].length <= offset) {
             piece++;
             offset = 0;
+            continue;
         }
-        *buffer = table.piece[piece].buffer[table.piece[piece].offset + offset];
+        if (table.buffer[table.piece[piece].buffer].data[table.piece[piece].offset + offset] == '\n') {
+            break;
+        }
+        *buffer = table.buffer[table.piece[piece].buffer].data[table.piece[piece].offset + offset];
         buffer++;
         offset++;
         count--;
@@ -171,9 +186,70 @@ void RefreshScreen() {
             printf("\x1b[%d;0H%-*d %s", row, liv.columnOffset - 1, liv.lineNumber, buffer);
             liv.lineLength = strlen(buffer);
         }
+        fflush(stdout);
     }
     printf("\x1b[%d;%dH", (liv.rows / 2), liv.cursor + liv.columnOffset);
     fflush(stdout);
+}
+
+void InsertExit() {
+    table.pieceCurrent = -1;
+}
+
+void InsertChar(char key) {
+    if (key == BACKSPACE || key == NEWLINE) {
+        exit(1);
+    }
+    table.buffer[APPEND].data = realloc(table.buffer[APPEND].data, table.buffer[APPEND].length + 1);
+    if (table.buffer[APPEND].data == NULL) {
+        printf("realloc error");
+        exit(1);
+    }
+    table.buffer[APPEND].data[table.buffer[APPEND].length] = key;
+    table.buffer[APPEND].length += 1;
+    table.piece[table.pieceCurrent].length++;
+    liv.cursor++;
+    liv.lineLength++;
+}
+
+void FindLineCursor(int* piece, int* offset, int line, int cursor) {
+    FindLine(piece, offset, line);
+    while (cursor > 1) {
+        if (table.piece[*piece].length < *offset) {
+            *piece += 1;
+            *offset = 0;
+        }
+        *offset += 1;
+        cursor--;
+    }
+}
+
+void SplitPiece(int splitPiece, int splitOffset) {
+    table.pieceCount += 2;
+    struct piece* new = realloc(table.piece, table.pieceCount * sizeof(struct piece));
+    if (new == NULL) {
+        printf("realloc error");
+        exit(1);
+    }
+    table.piece = new;
+    for (int i = table.pieceCount - 3; i > splitPiece; i--) {
+        table.piece[i + 2] = table.piece[i];
+    }
+    table.piece[splitPiece + 2].buffer = table.piece[splitPiece].buffer;
+    table.piece[splitPiece + 2].offset = table.piece[splitPiece].offset + splitOffset;
+    table.piece[splitPiece + 2].length = table.piece[splitPiece].length - splitOffset;
+    table.piece[splitPiece + 1].buffer = APPEND;
+    table.piece[splitPiece + 1].offset = table.buffer[APPEND].length;
+    table.piece[splitPiece + 1].length = 0;
+    table.piece[splitPiece].length = splitOffset;
+}
+
+void InsertInit() {
+    int piece = 0;
+    int offset = 0;
+    FindLineCursor(&piece, &offset, liv.lineNumber, liv.cursor);
+    SplitPiece(piece, offset);
+    table.pieceCurrent = piece + 1;
 }
 
 void LineUp() {
@@ -205,11 +281,12 @@ void CursorRight() {
 void ProssesKeyPress() {
     char key;
     read(STDIN_FILENO, &key, 1);
-    if (liv.mode == INSERT) {
-        if (key == 0x1b) { liv.mode = COMMAND; }
+    if (table.pieceCurrent != -1) {
+        if (key == 0x1b) { InsertExit(); }
+        else { InsertChar(key); }
     } else {
         if      (key == 'q') { exit(0); }
-        else if (key == 'i') { liv.mode = INSERT; }
+        else if (key == 'i') { InsertInit(); }
         else if (key == 'j') { LineDown(); }
         else if (key == 'k') { LineUp(); }
         else if (key == 'h') { CursorLeft(); }
