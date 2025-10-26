@@ -67,7 +67,41 @@ int GetLineLength(struct chain* chain, int line) {
     return length;
 }
 
-int GetLine(struct chain* chain, char* buffer, int* bufferLength, int line) {
+int GetLine(struct chain* chain, char* buffer, int bufferLength, int line) {
+    if (chain == NULL) return -1;
+    if (chain->piece == NULL) return -1;
+    if (chain->buffer == NULL) return -1;
+    if (line < 1) return -1;
+    int piece = 0;
+    int offset = 0;
+    while (line > 1) {
+        if (chain->piece[piece].next == -1) return -1;
+        if (offset >= chain->piece[piece].length) {
+            piece = chain->piece[piece].next;
+            offset = 0;
+            continue;
+        }
+        if (chain->buffer[chain->piece[piece].offset + offset] == '\n') {
+            line--;
+        }
+        offset++;
+    }
+    while (bufferLength > 1) {
+        if (chain->piece[piece].next == -1) break;
+        if (offset >= chain->piece[piece].length) {
+            piece = chain->piece[piece].next;
+            offset = 0;
+            continue;
+        }
+        if (chain->buffer[chain->piece[piece].offset + offset] == '\n') {
+            break;
+        }
+        *buffer = chain->buffer[chain->piece[piece].offset + offset];
+        buffer++;
+        bufferLength--;
+        offset++;
+    }
+    *buffer = '\0';
     return 0;
 }
 

@@ -48,10 +48,10 @@ void TestInitChain() {
 }
 
 void TestGetLineCount() {
-    char* test = "wads up doc?\nnot much\nim a wabbit";
+    char* test = "wads up doc?\nnot much\nim a wabbit\n";
     struct chain chain = InitChain(test);
     int count = GetLineCount(&chain);
-    TestEval("GetLineCount", count, 3);
+    TestEval("GetLineCount", count, 4);
     free(chain.buffer);
     free(chain.piece);
 }
@@ -72,10 +72,28 @@ void TestGetLineLength() {
     free(chain.piece);
 }
 
+void TestGetLine() {
+    char* test = "wads up doc?\nnot much\nim a wabbit\n";
+    struct chain chain = InitChain(test);
+    int lineLength = 32;
+    char line1[lineLength];
+    char line2[lineLength];
+    char line3[lineLength];
+    GetLine(&chain, line1, lineLength, 1);
+    TestEval("GetLine first", strcmp(line1, "wads up doc?"), 0);
+    GetLine(&chain, line2, lineLength, 2);
+    TestEval("GetLine middle", strcmp(line2, "not much"), 0);
+    GetLine(&chain, line3, lineLength, 4);
+    TestEval("GetLine last and only newline", strcmp(line3, ""), 0);
+    free(chain.buffer);
+    free(chain.piece);
+}
+
 int main() {
     TestInitChain();
     TestGetLineCount();
     TestGetLineLength();
+    TestGetLine();
     TestResult();
     return 0;
 }
