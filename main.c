@@ -23,7 +23,7 @@ struct liv {
     int columns;
     int columnOffset;
     int lineNumber;
-    int lineOffset;
+    int cursor;
 };
 
 struct liv liv;
@@ -76,7 +76,7 @@ void LoadScreen() {
     liv.rows = winsize.ws_row;
     liv.columnOffset = 4;
     liv.lineNumber = 1;
-    liv.lineOffset = 0;
+    liv.cursor = 1;
 }
 
 void WriteScreen() {
@@ -84,26 +84,52 @@ void WriteScreen() {
     for (int i = 1; i <= liv.rows; i++) {
         char buffer[liv.columns - liv.columnOffset + 1] = {};
         GetLine(&chain, buffer, liv.columns - liv.columnOffset + 1, i - (liv.rows / 2) + liv.lineNumber);
-        if (i == liv.rows / 2) {
+        if (i - (liv.rows / 2) + liv.lineNumber < 1 || i - (liv.rows / 2) + liv.lineNumber > GetLineCount(&chain)) {
+            printf("\x1b[%d;0H~", i);
+        } else if (i == liv.rows / 2) {
             printf("\x1b[%d;0H%-*d %s", i, liv.columnOffset - 1, liv.lineNumber, buffer);
         } else {
             printf("\x1b[%d;0H%*d %s", i, liv.columnOffset - 1, abs(i - (liv.rows / 2)), buffer);
         }
     }
-    printf("\x1b[%d;%dH", (liv.rows / 2), liv.lineOffset + liv.columnOffset + 1);
+    printf("\x1b[%d;%dH", (liv.rows / 2), liv.cursor + liv.columnOffset);
     fflush(stdout);
+}
+
+void LineNext() {
+    if (liv.lineNumber < GetLineCount(&chain)) {
+        liv.lineNumber++;
+        liv.cursor = 1;
+    }
+}
+
+void LinePrev() {
+    if (liv.lineNumber > 1) {
+        liv.lineNumber--;
+        liv.cursor = 1;
+    }
+}
+
+void CursorPrev() {
+    if (liv.cursor > 1) {
+        liv.cursor--;
+    }
+}
+
+void CursorNext() {
+    if (liv.cursor < GetLineLength(&chain, liv.lineNumber)) {
+        liv.cursor++;
+    }
 }
 
 void ProssesKeyPress() {
     char key;
     read(STDIN_FILENO, &key, 1);
     if      (key == 'q') LivExit("Success!");
-    /*
-    else if (key == 'h') l.index -= GetPrev(128);
-    else if (key == 'j') l.index += GetNext('\n');
-    else if (key == 'k') l.index -= GetPrev('\n');
-    else if (key == 'l') l.index += GetNext(128);
-    */
+    else if (key == 'k') LinePrev();
+    else if (key == 'j') LineNext();
+    else if (key == 'h') CursorPrev();
+    else if (key == 'l') CursorNext();
 }
 
 void RunLiv() {
