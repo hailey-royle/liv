@@ -11,13 +11,24 @@
 #define END_ALT_SCREEN "\x1b[?1049l"
 #define ERASE_SCREEN "\x1b[2J"
 
+#define ESCAPE 27
 #define BACKSPACE 127
 #define NEWLINE 13
 
 #define ORIGINAL 1
 #define APPEND 0
 
+struct insert {
+    char* text;
+    int mode;
+    int lineNumber;
+    int lineOffset;
+    int removeCount;
+};
+
 struct liv {
+    struct chain chain;
+    struct insert insert;
     char* fileName;
     int rows;
     int columns;
@@ -27,7 +38,6 @@ struct liv {
 };
 
 struct liv liv;
-struct chain chain;
 struct termios NormalTermios;
 
 void EnableRawMode() {
@@ -64,7 +74,7 @@ void LoadFile() {
     if (fp == NULL) LivExit("LoadFile fp is NULL");
     size = getdelim(&tempBuffer, &size, '\0', fp);
     if (size == -1) LivExit("LoadFile getdelim failed");
-    chain = InitChain(tempBuffer);
+    liv.chain = InitChain(tempBuffer);
     free(tempBuffer);
     fclose(fp);
 }
@@ -83,8 +93,8 @@ void WriteScreen() {
     printf(ERASE_SCREEN);
     for (int i = 1; i <= liv.rows; i++) {
         char buffer[liv.columns - liv.columnOffset + 1] = {};
-        GetLine(&chain, buffer, liv.columns - liv.columnOffset + 1, i - (liv.rows / 2) + liv.lineNumber);
-        if (i - (liv.rows / 2) + liv.lineNumber < 1 || i - (liv.rows / 2) + liv.lineNumber > GetLineCount(&chain)) {
+        GetLine(&liv.chain, buffer, liv.columns - liv.columnOffset + 1, i - (liv.rows / 2) + liv.lineNumber);
+        if (i - (liv.rows / 2) + liv.lineNumber < 1 || i - (liv.rows / 2) + liv.lineNumber > GetLineCount(&liv.chain)) {
             printf("\x1b[%d;0H~", i);
         } else if (i == liv.rows / 2) {
             printf("\x1b[%d;0H%-*d %s", i, liv.columnOffset - 1, liv.lineNumber, buffer);
@@ -96,8 +106,27 @@ void WriteScreen() {
     fflush(stdout);
 }
 
+void EnterInsert() {
+    liv.insert.mode = 1;
+    liv.insert.lineNumber = liv.lineNumber;
+    liv.insert.lineOffset = liv.cursor;
+    liv.insert.removeCount = 0;
+}
+
+void InsertChar(char key) {
+    if (key == ESCAPE) {
+        liv.insert.mode = 0;
+        liv.insert.lineNumber = 0;
+        liv.insert.lineOffset = 0;
+        liv.insert.removeCount = 0;
+    } else if (key == BACKSPACE) {
+    } else if (key == NEWLINE) {
+    } else {
+    }
+}
+
 void LineNext() {
-    if (liv.lineNumber < GetLineCount(&chain)) {
+    if (liv.lineNumber < GetLineCount(&liv.chain)) {
         liv.lineNumber++;
         liv.cursor = 1;
     }
@@ -117,7 +146,7 @@ void CursorPrev() {
 }
 
 void CursorNext() {
-    if (liv.cursor < GetLineLength(&chain, liv.lineNumber)) {
+    if (liv.cursor < GetLineLength(&liv.chain, liv.lineNumber)) {
         liv.cursor++;
     }
 }
@@ -125,7 +154,12 @@ void CursorNext() {
 void ProssesKeyPress() {
     char key;
     read(STDIN_FILENO, &key, 1);
+    if (liv.insert.mode) {
+        InsertChar(key);
+        return;
+    }
     if      (key == 'q') LivExit("Success!");
+    else if (key == 'i') EnterInsert();
     else if (key == 'k') LinePrev();
     else if (key == 'j') LineNext();
     else if (key == 'h') CursorPrev();
