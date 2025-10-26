@@ -37,12 +37,12 @@ void TestInitChain() {
     test = "wads up doc?\nnot much\nim a wabbit";
     struct chain chain;
     chain = InitChain(test);
-    TestEval("TestInitChain buffer", strcmp(chain.buffer, test), 0);
+    TestEval("InitChain buffer", strcmp(chain.buffer, test), 0);
     test = "";
     free(chain.buffer);
     free(chain.piece);
     chain = InitChain(test);
-    TestEval("TestInitChain buffer empty input", strcmp(chain.buffer, test), 0);
+    TestEval("InitChain buffer empty input", strcmp(chain.buffer, test), 0);
     free(chain.buffer);
     free(chain.piece);
 }
@@ -51,7 +51,7 @@ void TestGetLineCount() {
     char* test = "wads up doc?\nnot much\nim a wabbit";
     struct chain chain = InitChain(test);
     int count = GetLineCount(&chain);
-    TestEval("testGetLineCount", count, 3);
+    TestEval("GetLineCount", count, 3);
     free(chain.buffer);
     free(chain.piece);
 }
@@ -61,13 +61,13 @@ void TestGetLineLength() {
     struct chain chain = InitChain(test);
     int length;
     length = GetLineLength(&chain, 1);
-    TestEval("TestGetLineLength first", length, 12);
+    TestEval("GetLineLength first", length, 12);
     length = GetLineLength(&chain, 2);
-    TestEval("TestGetLineLength middle", length, 8);
+    TestEval("GetLineLength middle", length, 8);
     length = GetLineLength(&chain, 4);
-    TestEval("TestGetLineLength last and only newline", length, 0);
+    TestEval("GetLineLength last and only newline", length, 0);
     length = GetLineLength(&chain, 5);
-    TestEval("TestGetLineLength after last line", length, -1);
+    TestEval("GetLineLength after last line", length, -1);
     free(chain.buffer);
     free(chain.piece);
 }
