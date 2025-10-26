@@ -32,7 +32,7 @@ void TestResult() {
 }
 
 void TestInitChain() {
-    char* test = "wads up doc?";
+    char* test = "wads up doc?\nnot much\nim a wabbit";
     struct chain chain = InitChain(test);
     if (!strcmp(chain.buffer, test)) TestPassed("TestInitChain buffer");
     else TestFailed("TestInitChain buffer");
@@ -50,9 +50,20 @@ void TestGetLineCount() {
     free(chain.piece);
 }
 
+void TestGetLineLength() {
+    char* test = "wads up doc?\nnot much\nim a wabbit";
+    struct chain chain = InitChain(test);
+    int length = GetLineLength(&chain, 2);
+    if (length == 8) TestPassed("TestGetLineLength");
+    else TestFailed("TestGetLineLength");
+    free(chain.buffer);
+    free(chain.piece);
+}
+
 int main() {
     TestInitChain();
     TestGetLineCount();
+    TestGetLineLength();
     TestResult();
     return 0;
 }

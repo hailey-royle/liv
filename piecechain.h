@@ -32,7 +32,30 @@ int GetLineCount(struct chain* chain) {
 }
 
 int GetLineLength(struct chain* chain, int line) {
-    return 0;
+    if (chain == NULL) return -1;
+    if (chain->piece == NULL) return -1;
+    if (chain->buffer == NULL) return -1;
+    if (line < 1) return -1;
+    int piece = 0;
+    int offset = 0;
+    int length = 0;
+    while (line > 1) {
+        if (chain->piece[piece].next == -1) return -1;
+        if (offset >= chain->piece[piece].length) {
+            piece = chain->piece[piece].next;
+            offset = 0;
+            continue;
+        }
+        if (chain->buffer[chain->piece[piece].offset + offset] == '\n') {
+            line--;
+        }
+        offset++;
+    }
+    while (chain->buffer[chain->piece[piece].offset + offset] != '\n') {
+        length++;
+        offset++;
+    }
+    return length;
 }
 
 int GetLine(struct chain* chain, char* buffer, int* bufferLength, int line) {
