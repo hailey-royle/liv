@@ -141,12 +141,12 @@ int ModifyChain(struct chain* chain, char* text, int lineNumber, int lineOffset,
         chain->piece = newPiece;
         // todo: find where the text needs to be inserted, dont just assume the very beginning
         int piece = 0;
-        chain->piece[chain->pieceCount - 1].next = chain->piece[piece].next;
-        chain->piece[chain->pieceCount - 1].prev = piece;
-        chain->piece[chain->pieceCount - 1].offset = strlen(chain->buffer);
-        chain->piece[chain->pieceCount - 1].length = strlen(text);
-        chain->piece[chain->piece[piece].next].prev = chain->pieceCount - 1;
-        chain->piece[piece].next = chain->pieceCount - 1;
+        chain->piece[chain->pieceCount].next = chain->piece[piece].next;
+        chain->piece[chain->pieceCount].prev = piece;
+        chain->piece[chain->pieceCount].offset = strlen(chain->buffer);
+        chain->piece[chain->pieceCount].length = strlen(text);
+        chain->piece[chain->piece[piece].next].prev = chain->pieceCount;
+        chain->piece[piece].next = chain->pieceCount;
         chain->pieceCount++;
         char* newBuffer = realloc(chain->buffer, strlen(text) + strlen(chain->buffer) + 1);
         if (newBuffer == NULL) return -1;
