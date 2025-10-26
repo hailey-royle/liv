@@ -17,14 +17,15 @@ struct test {
 
 struct test test;
 
-void TestFailed(char* text) {
-    test.failed++;
-    printf("\t%s [ %sfailed%s ]\r\n", text, RED, RESET);
-}
-
-void TestPassed(char* text) {
-    test.passed++;
-    printf("\t%s [ %spassed%s ]\r\n", text, GREEN, RESET);
+void TestEval(char* text, int one, int two) {
+    if (one == two) {
+        test.passed++;
+        printf("\t%s [ %spassed%s ]\r\n", text, GREEN, RESET);
+    }
+    else {
+        test.failed++;
+        printf("\t%s [ %sfailed%s ]\r\n", text, RED, RESET);
+    }
 }
 
 void TestResult() {
@@ -34,8 +35,7 @@ void TestResult() {
 void TestInitChain() {
     char* test = "wads up doc?\nnot much\nim a wabbit";
     struct chain chain = InitChain(test);
-    if (!strcmp(chain.buffer, test)) TestPassed("TestInitChain buffer");
-    else TestFailed("TestInitChain buffer");
+    TestEval("TestInitChain buffer", strcmp(chain.buffer, test), 0);
     free(chain.buffer);
     free(chain.piece);
 }
@@ -44,25 +44,23 @@ void TestGetLineCount() {
     char* test = "wads up doc?\nnot much\nim a wabbit";
     struct chain chain = InitChain(test);
     int count = GetLineCount(&chain);
-    if (count == 3) TestPassed("TestGetLineCount");
-    else TestFailed("TestGetLineCount");
+    TestEval("testGetLineCount", count, 3);
     free(chain.buffer);
     free(chain.piece);
 }
 
 void TestGetLineLength() {
-    char* test = "wads up doc?\nnot much\nim a wabbit";
+    char* test = "wads up doc?\nnot much\nim a wabbit\n";
     struct chain chain = InitChain(test);
     int length;
     length = GetLineLength(&chain, 1);
-    if (length == 12) TestPassed("TestGetLineLength first");
-    else TestFailed("TestGetLineLength first");
+    TestEval("TestGetLineLength first", length, 12);
     length = GetLineLength(&chain, 2);
-    if (length == 8) TestPassed("TestGetLineLength middle");
-    else TestFailed("TestGetLineLength middle");
-    length = GetLineLength(&chain, 3);
-    if (length == 11) TestPassed("TestGetLineLength last");
-    else TestFailed("TestGetLineLength last");
+    TestEval("TestGetLineLength middle", length, 8);
+    length = GetLineLength(&chain, 4);
+    TestEval("TestGetLineLength last and only newline", length, 0);
+    length = GetLineLength(&chain, 5);
+    TestEval("TestGetLineLength after last line", length, -1);
     free(chain.buffer);
     free(chain.piece);
 }
