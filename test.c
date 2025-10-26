@@ -53,9 +53,16 @@ void TestGetLineCount() {
 void TestGetLineLength() {
     char* test = "wads up doc?\nnot much\nim a wabbit";
     struct chain chain = InitChain(test);
-    int length = GetLineLength(&chain, 2);
-    if (length == 8) TestPassed("TestGetLineLength");
-    else TestFailed("TestGetLineLength");
+    int length;
+    length = GetLineLength(&chain, 1);
+    if (length == 12) TestPassed("TestGetLineLength first");
+    else TestFailed("TestGetLineLength first");
+    length = GetLineLength(&chain, 2);
+    if (length == 8) TestPassed("TestGetLineLength middle");
+    else TestFailed("TestGetLineLength middle");
+    length = GetLineLength(&chain, 3);
+    if (length == 11) TestPassed("TestGetLineLength last");
+    else TestFailed("TestGetLineLength last");
     free(chain.buffer);
     free(chain.piece);
 }
