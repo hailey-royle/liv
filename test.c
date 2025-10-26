@@ -92,11 +92,26 @@ void TestGetLine() {
     free(chain.piece);
 }
 
+void TestModifyChain() {
+    char* test = "wads up doc?\nnot much\nim a wabbit\n";
+    struct chain chain = InitChain(test);
+    ModifyChain(&chain, "first", 1, 0, 0);
+    TestEval("ModifyChain insert beginning", strlen(test), strlen(chain.buffer) - 5);
+    free(chain.buffer);
+    free(chain.piece);
+    chain = InitChain(test);
+    ModifyChain(&chain, "", 1, 0, 5);
+    TestEval("ModifyChain remove beginning", chain.piece[2].offset, 5);
+    free(chain.buffer);
+    free(chain.piece);
+}
+
 int main() {
     TestInitChain();
     TestGetLineCount();
     TestGetLineLength();
     TestGetLine();
+    TestModifyChain();
     TestResult();
     return 0;
 }
