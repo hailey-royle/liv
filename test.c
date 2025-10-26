@@ -79,12 +79,15 @@ void TestGetLine() {
     char line1[lineLength];
     char line2[lineLength];
     char line3[lineLength];
+    char line4[lineLength];
     GetLine(&chain, line1, lineLength, 1);
     TestEval("GetLine first", strcmp(line1, "wads up doc?"), 0);
     GetLine(&chain, line2, lineLength, 2);
     TestEval("GetLine middle", strcmp(line2, "not much"), 0);
     GetLine(&chain, line3, lineLength, 4);
     TestEval("GetLine last and only newline", strcmp(line3, ""), 0);
+    int res = GetLine(&chain, line4, lineLength, 5);
+    TestEval("GetLine after last line", res, -1);
     free(chain.buffer);
     free(chain.piece);
 }
