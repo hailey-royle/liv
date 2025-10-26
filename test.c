@@ -32,19 +32,25 @@ void TestResult() {
     printf("\t%sPassed: %s%d%s,  Failed: %s%d%s\r\n", BOLD, GREEN, test.passed, DEFAULT, RED, test.failed, RESET);
 }
 
-void TestInitChain() {
-    char* test;
-    test = "wads up doc?\nnot much\nim a wabbit";
-    struct chain chain;
-    chain = InitChain(test);
+void TestInitChainBuffer() {
+    char* test = "wads up doc?\nnot much\nim a wabbit";
+    struct chain chain = InitChain(test);
     TestEval("InitChain buffer", strcmp(chain.buffer, test), 0);
-    test = "";
     free(chain.buffer);
     free(chain.piece);
-    chain = InitChain(test);
+}
+
+void TestInitChainBufferEmpty() {
+    char* test = "";
+    struct chain chain = InitChain(test);
     TestEval("InitChain buffer empty input", strcmp(chain.buffer, test), 0);
     free(chain.buffer);
     free(chain.piece);
+}
+
+void TestInitChain() {
+    TestInitChainBuffer();
+    TestInitChainBufferEmpty();
 }
 
 void TestGetLineCount() {
@@ -76,34 +82,40 @@ void TestGetLine() {
     char* test = "wads up doc?\nnot much\nim a wabbit\n";
     struct chain chain = InitChain(test);
     int lineLength = 32;
-    char line1[lineLength];
-    char line2[lineLength];
-    char line3[lineLength];
-    char line4[lineLength];
-    GetLine(&chain, line1, lineLength, 1);
-    TestEval("GetLine first", strcmp(line1, "wads up doc?"), 0);
-    GetLine(&chain, line2, lineLength, 2);
-    TestEval("GetLine middle", strcmp(line2, "not much"), 0);
-    GetLine(&chain, line3, lineLength, 4);
-    TestEval("GetLine last and only newline", strcmp(line3, ""), 0);
-    int res = GetLine(&chain, line4, lineLength, 5);
+    char line[lineLength];
+    GetLine(&chain, line, lineLength, 1);
+    TestEval("GetLine first", strcmp(line, "wads up doc?"), 0);
+    GetLine(&chain, line, lineLength, 2);
+    TestEval("GetLine middle", strcmp(line, "not much"), 0);
+    GetLine(&chain, line, lineLength, 4);
+    TestEval("GetLine last and only newline", strcmp(line, ""), 0);
+    int res = GetLine(&chain, line, lineLength, 5);
     TestEval("GetLine after last line", res, -1);
     free(chain.buffer);
     free(chain.piece);
 }
 
-void TestModifyChain() {
+void TestModifyChainInsertBeginning() {
     char* test = "wads up doc?\nnot much\nim a wabbit\n";
     struct chain chain = InitChain(test);
     ModifyChain(&chain, "first", 1, 0, 0);
-    TestEval("ModifyChain insert beginning", strlen(test), strlen(chain.buffer) - 5);
+    TestEval("ModifyChain insert beginning", strlen(test) + 5, strlen(chain.buffer));
     free(chain.buffer);
     free(chain.piece);
-    chain = InitChain(test);
+}
+
+void TestModifyChainDeleteBeginning() {
+    char* test = "wads up doc?\nnot much\nim a wabbit\n";
+    struct chain chain = InitChain(test);
     ModifyChain(&chain, "", 1, 0, 5);
     TestEval("ModifyChain remove beginning", chain.piece[2].offset, 5);
     free(chain.buffer);
     free(chain.piece);
+}
+
+void TestModifyChain() {
+    TestModifyChainInsertBeginning();
+    TestModifyChainDeleteBeginning();
 }
 
 int main() {
