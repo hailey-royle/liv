@@ -122,13 +122,14 @@ int ModifyChain(struct chain* chain, char* text, int lineNumber, int lineOffset,
     if (lineNumber < 1) return -1;
     if (lineOffset < 0) return -1;
     if (removeCount < 0) return -1;
+    // todo: find where the text needs to be modifyed, dont just assume the very beginning
+    int piece = 2;
+    int offset = 0;
     if (removeCount > 0) {
-        // todo: find where the text needs to be removed, dont just assume the very beginning
-        int piece = 2;
 
-        // todo: handle overflow into multiple pieces
-        if (removeCount > chain->piece[piece].length) {
-            return -1;
+        while (removeCount > chain->piece[piece].length) {
+            chain->piece[piece].length = 0;
+            piece = chain->piece[piece].next;
         }
         chain->piece[piece].offset += removeCount;
         chain->piece[piece].length -= removeCount;
@@ -137,9 +138,6 @@ int ModifyChain(struct chain* chain, char* text, int lineNumber, int lineOffset,
         struct piece* newPiece = realloc(chain->piece, sizeof(chain->piece[0]) * (chain->pieceCount + 2));
         if (newPiece == NULL) return -1;
         chain->piece = newPiece;
-        // todo: find where the text needs to be inserted, dont just assume the very beginning
-        int piece = 0;
-        int offset = lineOffset;
         chain->piece[chain->pieceCount].next = chain->pieceCount + 1;
         chain->piece[chain->pieceCount].prev = piece;
         chain->piece[chain->pieceCount].offset = strlen(chain->buffer);
