@@ -122,9 +122,31 @@ int ModifyChain(struct chain* chain, char* text, int lineNumber, int lineOffset,
     if (lineNumber < 1) return -1;
     if (lineOffset < 0) return -1;
     if (removeCount < 0) return -1;
-    // todo: find where the text needs to be modifyed, dont just assume the very beginning
-    int piece = 2;
+    int piece = 0;
     int offset = 0;
+    while (lineNumber > 1) {
+        if (chain->piece[piece].next == -1) return -1;
+        if (offset >= chain->piece[piece].length) {
+            piece = chain->piece[piece].next;
+            offset = 0;
+            continue;
+        }
+        if (chain->buffer[chain->piece[piece].offset + offset] == '\n') {
+            lineNumber--;
+        }
+        offset++;
+    }
+    while (lineOffset > 0) {
+        if (chain->piece[piece].next == -1) return -1;
+        if (offset >= chain->piece[piece].length) {
+            piece = chain->piece[piece].next;
+            offset = 0;
+            continue;
+        }
+        if (chain->buffer[chain->piece[piece].offset + offset] == '\n') return -1;
+        lineOffset--;
+        offset++;
+    }
     if (removeCount > 0) {
 
         while (removeCount > chain->piece[piece].length) {
