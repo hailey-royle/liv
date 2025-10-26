@@ -20,11 +20,11 @@ struct test test;
 void TestEval(char* text, int one, int two) {
     if (one == two) {
         test.passed++;
-        printf("\t%s [ %spassed%s ]\r\n", text, GREEN, RESET);
+        printf("\t[ %spassed%s ] %s\r\n", GREEN, RESET, text);
     }
     else {
         test.failed++;
-        printf("\t%s [ %sfailed%s ]\r\n", text, RED, RESET);
+        printf("\t[ %sfailed%s ] %s\r\n", RED, RESET, text);
     }
 }
 
