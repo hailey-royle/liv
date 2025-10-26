@@ -114,7 +114,6 @@ int Redo(struct chain* chain) {
     return 0;
 }
 
-// currently only accounts for removeCount = 0, lineNumber = 1, and lineOffset = 0
 int ModifyChain(struct chain* chain, char* text, int lineNumber, int lineOffset, int removeCount) {
     if (chain == NULL) return -1;
     if (chain->piece == NULL) return -1;
@@ -135,19 +134,24 @@ int ModifyChain(struct chain* chain, char* text, int lineNumber, int lineOffset,
         chain->piece[piece].length -= removeCount;
     }
     if (strlen(text) > 0) {
-        // todo: split the existing piece into two and inset the new text inbetween
-        struct piece* newPiece = realloc(chain->piece, sizeof(chain->piece[0]) * (chain->pieceCount + 1));
+        struct piece* newPiece = realloc(chain->piece, sizeof(chain->piece[0]) * (chain->pieceCount + 2));
         if (newPiece == NULL) return -1;
         chain->piece = newPiece;
         // todo: find where the text needs to be inserted, dont just assume the very beginning
         int piece = 0;
-        chain->piece[chain->pieceCount].next = chain->piece[piece].next;
+        int offset = lineOffset;
+        chain->piece[chain->pieceCount].next = chain->pieceCount + 1;
         chain->piece[chain->pieceCount].prev = piece;
         chain->piece[chain->pieceCount].offset = strlen(chain->buffer);
         chain->piece[chain->pieceCount].length = strlen(text);
-        chain->piece[chain->piece[piece].next].prev = chain->pieceCount;
+        chain->piece[chain->pieceCount + 1].next = chain->piece[piece].next;
+        chain->piece[chain->pieceCount + 1].prev = chain->pieceCount;
+        chain->piece[chain->pieceCount + 1].offset = chain->piece[piece].offset + offset;
+        chain->piece[chain->pieceCount + 1].length = chain->piece[piece].length - offset;
+        chain->piece[chain->piece[piece].next].prev = chain->pieceCount + 1;
         chain->piece[piece].next = chain->pieceCount;
-        chain->pieceCount++;
+        chain->piece[piece].length = offset;
+        chain->pieceCount += 2;
         char* newBuffer = realloc(chain->buffer, strlen(text) + strlen(chain->buffer) + 1);
         if (newBuffer == NULL) return -1;
         chain->buffer = newBuffer;
