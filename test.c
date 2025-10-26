@@ -33,9 +33,16 @@ void TestResult() {
 }
 
 void TestInitChain() {
-    char* test = "wads up doc?\nnot much\nim a wabbit";
-    struct chain chain = InitChain(test);
+    char* test;
+    test = "wads up doc?\nnot much\nim a wabbit";
+    struct chain chain;
+    chain = InitChain(test);
     TestEval("TestInitChain buffer", strcmp(chain.buffer, test), 0);
+    test = "";
+    free(chain.buffer);
+    free(chain.piece);
+    chain = InitChain(test);
+    TestEval("TestInitChain buffer empty input", strcmp(chain.buffer, test), 0);
     free(chain.buffer);
     free(chain.piece);
 }
