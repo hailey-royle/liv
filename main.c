@@ -5,6 +5,8 @@
 #include <termios.h>
 #include <sys/ioctl.h>
 
+#include "piecechain.h"
+
 #define START_ALT_SCREEN "\x1b[?1049h"
 #define END_ALT_SCREEN "\x1b[?1049l"
 #define ERASE_SCREEN "\x1b[2J"
@@ -15,36 +17,17 @@
 #define ORIGINAL 1
 #define APPEND 0
 
-struct piece {
-    int next;
-    int prev;
-    int offset;
-    int length;
-};
-
-struct chain {
-    char* buffer;
-    struct piece* piece;
-    size_t bufferLength;
-    int pieceCount;
-};
-
-struct screen {
+struct liv {
+    char* fileName;
     int rows;
     int columns;
     int columnOffset;
     int lineNumber;
-    int lineLength;
-    int cursor;
+    int lineOffset;
 };
 
-struct liv {
-    struct screen s;
-    struct chain c;
-    char* fileName;
-};
-
-struct liv l;
+struct liv liv;
+struct chain chain;
 struct termios NormalTermios;
 
 void EnableRawMode() {
@@ -65,140 +48,62 @@ void DisableRawMode() {
 
 void LivExit(char* message) {
     DisableRawMode();
-    printf("%s\n", message);
+    write(STDOUT_FILENO, message, sizeof(message));
     exit(0);
 }
 
 void ValidateArgs(int argc, char* argv[]) {
     if (argc != 2) LivExit("wrong args, format: liv <filename>");
-    l.fileName = argv[1];
+    liv.fileName = argv[1];
 }
 
 void LoadFile() {
-    FILE* fp = fopen(l.fileName, "r");
+    size_t size = 0;
+    char* tempBuffer;
+    FILE* fp = fopen(liv.fileName, "r");
     if (fp == NULL) LivExit("LoadFile fp is NULL");
-    l.c.bufferLength = getdelim(&l.c.buffer, &l.c.bufferLength, '\0', fp);
-    if (l.c.bufferLength == -1) LivExit("LoadFile getdelim failed");
+    size = getdelim(&tempBuffer, &size, '\0', fp);
+    if (size == -1) LivExit("LoadFile getdelim failed");
+    chain = InitChain(tempBuffer);
+    free(tempBuffer);
     fclose(fp);
-}
-
-void LoadChain() {
-    l.c.piece = realloc(l.c.piece, sizeof(struct piece) * 3);
-    if (l.c.piece == NULL) LivExit("LoadChain realloc failed");
-    l.c.piece[0].next = 2;
-    l.c.piece[0].prev = -1;
-    l.c.piece[1].next = -1;
-    l.c.piece[1].prev = 2;
-    l.c.piece[2].next = 1;
-    l.c.piece[2].prev = 0;
-    l.c.piece[2].offset = 0;
-    l.c.piece[2].length = l.c.bufferLength;
 }
 
 void LoadScreen() {
     struct winsize winsize;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &winsize);
-    l.s.columns = winsize.ws_col;
-    l.s.rows = winsize.ws_row;
-    l.s.columnOffset = 4;
-    l.s.lineNumber = 1;
-    l.s.cursor = 1;
-}
-
-void FindLine(int* piece, int* offset, int line) {
-    while (line > 1) {
-        if (l.c.piece[*piece].next == -1) {
-            *piece = -1;
-            *offset = 0;
-            break;
-        }
-        if (*offset > l.c.piece[*piece].length) {
-            *offset = 0;
-            *piece = l.c.piece[*piece].next;
-            continue;
-        }
-        if (l.c.buffer[l.c.piece[*piece].offset + *offset] == '\n') {
-            line--;
-        }
-        *offset += 1;
-    }
-}
-
-void WriteLine(char* buffer, int count, int line) {
-    int piece = 0;
-    int offset = 0;
-    if (line < 1) return;
-    FindLine(&piece, &offset, line);
-    if (piece == -1) return;
-    while (count > 1) {
-        if (l.c.piece[piece].next == -1) break;
-        if (offset > l.c.piece[piece].length) {
-            offset = 0;
-            piece = l.c.piece[piece].next;
-            continue;
-        }
-        if (l.c.buffer[l.c.piece[piece].offset + offset] == '\n') break;
-        *buffer = l.c.buffer[l.c.piece[piece].offset + offset];
-        buffer++;
-        offset++;
-        count--;
-    }
-    *buffer = '\0';
+    liv.columns = winsize.ws_col;
+    liv.rows = winsize.ws_row;
+    liv.columnOffset = 4;
+    liv.lineNumber = 1;
+    liv.lineOffset = 0;
 }
 
 void WriteScreen() {
     printf(ERASE_SCREEN);
-    for (int i = 1; i <= l.s.rows; i++) {
-        char buffer[l.s.columns - l.s.columnOffset + 1] = {};
-        WriteLine(buffer, l.s.columns - l.s.columnOffset + 1, i - (l.s.rows / 2) + l.s.lineNumber);
-        if (i == l.s.rows / 2) {
-            printf("\x1b[%d;0H%-*d %s", i, l.s.columnOffset - 1, l.s.lineNumber, buffer);
-            l.s.lineLength = strlen(buffer);
+    for (int i = 1; i <= liv.rows; i++) {
+        char buffer[liv.columns - liv.columnOffset + 1] = {};
+        GetLine(&chain, buffer, liv.columns - liv.columnOffset + 1, i - (liv.rows / 2) + liv.lineNumber);
+        if (i == liv.rows / 2) {
+            printf("\x1b[%d;0H%-*d %s", i, liv.columnOffset - 1, liv.lineNumber, buffer);
         } else {
-            printf("\x1b[%d;0H%*d %s", i, l.s.columnOffset - 1, abs(i - (l.s.rows / 2)), buffer);
+            printf("\x1b[%d;0H%*d %s", i, liv.columnOffset - 1, abs(i - (liv.rows / 2)), buffer);
         }
     }
-    printf("\x1b[%d;%dH", (l.s.rows / 2), l.s.cursor + l.s.columnOffset);
+    printf("\x1b[%d;%dH", (liv.rows / 2), liv.lineOffset + liv.columnOffset + 1);
     fflush(stdout);
-}
-
-void LineDown() {
-    int piece = 0;
-    int offset = 0;
-    FindLine(&piece, &offset, l.s.lineNumber);
-    if (piece != -1) {
-        l.s.lineNumber++;
-        l.s.cursor = 1;
-    }
-}
-
-void LineUp() {
-    if (l.s.lineNumber > 1) {
-        l.s.lineNumber--;
-        l.s.cursor = 1;
-    }
-}
-
-void CursorLeft() {
-    if (l.s.cursor > 1) {
-        l.s.cursor--;
-    }
-}
-
-void CursorRight() {
-    if (l.s.cursor < l.s.columns - l.s.columnOffset && l.s.cursor < l.s.lineLength) {
-        l.s.cursor++;
-    }
 }
 
 void ProssesKeyPress() {
     char key;
     read(STDIN_FILENO, &key, 1);
     if      (key == 'q') LivExit("Success!");
-    else if (key == 'j') LineDown();
-    else if (key == 'k') LineUp();
-    else if (key == 'h') CursorLeft();
-    else if (key == 'l') CursorRight();
+    /*
+    else if (key == 'h') l.index -= GetPrev(128);
+    else if (key == 'j') l.index += GetNext('\n');
+    else if (key == 'k') l.index -= GetPrev('\n');
+    else if (key == 'l') l.index += GetNext(128);
+    */
 }
 
 void RunLiv() {
@@ -212,7 +117,6 @@ int main(int argc, char* argv[]) {
     EnableRawMode();
     ValidateArgs(argc, argv);
     LoadFile();
-    LoadChain();
     LoadScreen();
     RunLiv();
 }
