@@ -14,6 +14,7 @@ struct test {
     int passed;
     int failed;
 };
+
 struct test test;
 
 void TestFailed(char* text) {
@@ -31,16 +32,27 @@ void TestResult() {
 }
 
 void TestInitChain() {
-    char* test = "wads up doc?\0";
+    char* test = "wads up doc?";
     struct chain chain = InitChain(test);
-    if (strcmp(chain.buffer, test)) TestFailed("TestInitChain");
-    else TestPassed("TestInitChain");
+    if (!strcmp(chain.buffer, test)) TestPassed("TestInitChain buffer");
+    else TestFailed("TestInitChain buffer");
+    free(chain.buffer);
+    free(chain.piece);
+}
+
+void TestGetLineCount() {
+    char* test = "wads up doc?\nnot much\nim a wabbit";
+    struct chain chain = InitChain(test);
+    int count = GetLineCount(&chain);
+    if (count == 3) TestPassed("TestGetLineCount");
+    else TestFailed("TestGetLineCount");
     free(chain.buffer);
     free(chain.piece);
 }
 
 int main() {
     TestInitChain();
+    TestGetLineCount();
     TestResult();
     return 0;
 }
