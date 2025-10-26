@@ -1,5 +1,11 @@
 #!/bin/bash
 
-gcc main.c -Og -Wall -fanalyzer -fsanitize=address
-./a.out $1
-rm a.out
+if [ "$1" == "test" ]; then
+    gcc test.c -Og -Wall -fanalyzer -fsanitize=address
+    ./a.out
+    rm a.out
+else
+    gcc main.c -Og -Wall -fanalyzer -fsanitize=address
+    ./a.out $1
+    rm a.out
+fi
