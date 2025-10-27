@@ -21,8 +21,6 @@
 struct insert {
     char* text;
     int mode;
-    int lineNumber;
-    int lineOffset;
     int removeCount;
 };
 
@@ -106,28 +104,6 @@ void WriteScreen() {
     fflush(stdout);
 }
 
-void EnterInsert() {
-    liv.insert.mode = 1;
-    liv.insert.lineNumber = liv.lineNumber;
-    liv.insert.lineOffset = liv.cursor;
-    liv.insert.removeCount = 0;
-}
-
-void InsertChar(char key) {
-    if (key == ESCAPE) {
-        ModifyChain(&liv.chain, "", liv.insert.lineNumber, liv.insert.lineOffset, liv.insert.removeCount);
-        liv.insert.mode = 0;
-        liv.insert.lineNumber = 0;
-        liv.insert.lineOffset = 0;
-        liv.insert.removeCount = 0;
-    } else if (key == BACKSPACE) {
-        liv.cursor--;
-        liv.insert.lineOffset--;
-        liv.insert.removeCount++;
-    } else if (key == NEWLINE) {
-    } else {
-    }
-}
 
 void LineNext() {
     if (liv.lineNumber < GetLineCount(&liv.chain)) {
@@ -155,6 +131,33 @@ void CursorNext() {
     }
 }
 
+void EnterInsert() {
+    liv.insert.mode = 1;
+    liv.insert.removeCount = 0;
+}
+
+void InsertChar(char key) {
+    if (key == ESCAPE) {
+        ModifyChain(&liv.chain, "", liv.lineNumber, liv.cursor, liv.insert.removeCount);
+        liv.insert.mode = 0;
+        liv.insert.removeCount = 0;
+    } else if (key == BACKSPACE) {
+        if (liv.cursor == 1) {
+            if (liv.lineNumber > 1) {
+                LinePrev();
+                liv.insert.removeCount++;
+                liv.cursor += GetLineLength(&liv.chain, liv.lineNumber);
+                ModifyChain(&liv.chain, "", liv.lineNumber, liv.cursor, liv.insert.removeCount);
+                liv.insert.removeCount = 0;
+            }
+        } else {
+            liv.insert.removeCount++;
+            liv.cursor--;
+        }
+    } else if (key == NEWLINE) {
+    } else {
+    }
+}
 void ProssesKeyPress() {
     char key;
     read(STDIN_FILENO, &key, 1);
