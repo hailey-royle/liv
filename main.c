@@ -115,11 +115,15 @@ void EnterInsert() {
 
 void InsertChar(char key) {
     if (key == ESCAPE) {
+        ModifyChain(&liv.chain, "", liv.insert.lineNumber, liv.insert.lineOffset, liv.insert.removeCount);
         liv.insert.mode = 0;
         liv.insert.lineNumber = 0;
         liv.insert.lineOffset = 0;
         liv.insert.removeCount = 0;
     } else if (key == BACKSPACE) {
+        liv.cursor--;
+        liv.insert.lineOffset--;
+        liv.insert.removeCount++;
     } else if (key == NEWLINE) {
     } else {
     }

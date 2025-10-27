@@ -98,7 +98,7 @@ void TestGetLine() {
 void TestModifyChainInsertBeginning() {
     char* test = "wads up doc?\nnot much\nim a wabbit\n";
     struct chain chain = InitChain(test);
-    ModifyChain(&chain, "first", 1, 0, 0);
+    ModifyChain(&chain, "first", 1, 1, 0);
     TestEval("ModifyChain insert beginning strlen", strlen(test) + 5, strlen(chain.buffer));
     free(chain.buffer);
     free(chain.piece);
@@ -107,7 +107,7 @@ void TestModifyChainInsertBeginning() {
 void TestModifyChainDeleteBeginning() {
     char* test = "wads up doc?\nnot much\nim a wabbit\n";
     struct chain chain = InitChain(test);
-    ModifyChain(&chain, "", 1, 0, 5);
+    ModifyChain(&chain, "", 1, 1, 5);
     TestEval("ModifyChain delete beginning", chain.piece[2].offset, 5);
     free(chain.buffer);
     free(chain.piece);
@@ -116,7 +116,7 @@ void TestModifyChainDeleteBeginning() {
 void TestModifyChainReplaceBeginning() {
     char* test = "wads up doc?\nnot much\nim a wabbit\n";
     struct chain chain = InitChain(test);
-    ModifyChain(&chain, "first", 1, 0, 5);
+    ModifyChain(&chain, "first", 1, 1, 5);
     TestEval("ModifyChain replace delete beginning", chain.piece[2].offset, 5);
     TestEval("ModifyChain replace insert beginning", strlen(test) + 5, strlen(chain.buffer));
     free(chain.buffer);
@@ -126,8 +126,8 @@ void TestModifyChainReplaceBeginning() {
 void TestModifyChainInsertMiddle() {
     char* test = "wads up doc?\nnot much\nim a wabbit\n";
     struct chain chain = InitChain(test);
-    ModifyChain(&chain, "that ", 2, 4, 0);
-    TestEval("ModifyChain insert beginning strlen", strlen(test) + 5, strlen(chain.buffer));
+    ModifyChain(&chain, "that ", 2, 5, 0);
+    TestEval("ModifyChain insert middle strlen", strlen(test) + 5, strlen(chain.buffer));
     free(chain.buffer);
     free(chain.piece);
 }
@@ -135,8 +135,8 @@ void TestModifyChainInsertMiddle() {
 void TestModifyChainDeleteMiddle() {
     char* test = "wads up doc?\nnot much\nim a wabbit\n";
     struct chain chain = InitChain(test);
-    ModifyChain(&chain, "", 2, 4, 5);
-    TestEval("ModifyChain delete beginning", chain.piece[2].offset, 5);
+    ModifyChain(&chain, "", 1, 6, 5);
+    TestEval("ModifyChain delete middle", chain.piece[2].length, 5);
     free(chain.buffer);
     free(chain.piece);
 }
@@ -144,9 +144,9 @@ void TestModifyChainDeleteMiddle() {
 void TestModifyChainReplaceMiddle() {
     char* test = "wads up doc?\nnot much\nim a wabbit\n";
     struct chain chain = InitChain(test);
-    ModifyChain(&chain, "first", 2, 4, 5);
-    TestEval("ModifyChain replace delete beginning", chain.piece[2].offset, 5);
-    TestEval("ModifyChain replace insert beginning", strlen(test) + 5, strlen(chain.buffer));
+    ModifyChain(&chain, "first", 1, 6, 5);
+    TestEval("ModifyChain replace delete middle", chain.piece[2].length, 5);
+    TestEval("ModifyChain replace insert middle", strlen(test) + 5, strlen(chain.buffer));
     free(chain.buffer);
     free(chain.piece);
 }
