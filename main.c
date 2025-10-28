@@ -56,12 +56,12 @@ void DisableRawMode() {
 
 void LivExit(char* message) {
     DisableRawMode();
-    write(STDOUT_FILENO, message, sizeof(message));
+    write(STDOUT_FILENO, message, strlen(message));
     exit(0);
 }
 
 void ValidateArgs(int argc, char* argv[]) {
-    if (argc != 2) LivExit("wrong args, format: liv <filename>");
+    if (argc != 2) LivExit("wrong args, format: liv <filename>\r\n");
     liv.fileName = argv[1];
 }
 
@@ -69,9 +69,9 @@ void LoadFile() {
     size_t size = 0;
     char* tempBuffer;
     FILE* fp = fopen(liv.fileName, "r");
-    if (fp == NULL) LivExit("LoadFile fp is NULL");
+    if (fp == NULL) LivExit("LoadFile fp is NULL\r\n");
     size = getdelim(&tempBuffer, &size, '\0', fp);
-    if (size == -1) LivExit("LoadFile getdelim failed");
+    if (size == -1) LivExit("LoadFile getdelim failed\r\n");
     liv.chain = InitChain(tempBuffer);
     free(tempBuffer);
     fclose(fp);
@@ -165,7 +165,7 @@ void ProssesKeyPress() {
         InsertChar(key);
         return;
     }
-    if      (key == 'q') LivExit("Success!");
+    if      (key == 'q') LivExit("Success!\r\n");
     else if (key == 'i') EnterInsert();
     else if (key == 'k') LinePrev();
     else if (key == 'j') LineNext();
