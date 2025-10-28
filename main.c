@@ -15,19 +15,17 @@
 #define BACKSPACE 127
 #define NEWLINE 13
 
-#define ORIGINAL 1
 #define APPEND 0
-
-struct insert {
-    char* text;
-    int mode;
-    int removeCount;
-};
+#define ORIGINAL 1
+#define NORMAL 0
+#define INSERT 1
 
 struct liv {
     struct chain chain;
-    struct insert insert;
     char* fileName;
+    char* insert;
+    int mode;
+    int removeCount;
     int rows;
     int columns;
     int columnOffset;
@@ -85,6 +83,24 @@ void LoadScreen() {
     liv.columnOffset = 4;
     liv.lineNumber = 1;
     liv.cursor = 1;
+    liv.insert = malloc(liv.columns - liv.columnOffset + 1);
+    if (liv.insert == NULL) LivExit("LoadScreen malloc failed\r\n");
+    liv.insert[0] = '\0';
+}
+
+void GetInsertTextLine(char* buffer, int bufferLength) {
+    if (strlen(liv.insert) > liv.removeCount) {
+        for (int i = strlen(buffer); i > liv.cursor - 1; i--) {
+            buffer[i] = buffer[i + strlen(liv.insert) - liv.removeCount];
+        }
+    } else if (strlen(liv.insert) < liv.removeCount) {
+        for (int i = liv.cursor - 1; i < strlen(buffer); i++) {
+            buffer[i] = buffer[i + liv.removeCount - strlen(liv.insert)];
+        }
+    }
+    for (int i = liv.cursor - 1; i < strlen(liv.insert); i++) {
+        buffer[i] = liv.insert[i - liv.cursor - 1];
+    }
 }
 
 void WriteScreen() {
@@ -95,6 +111,7 @@ void WriteScreen() {
         if (i - (liv.rows / 2) + liv.lineNumber < 1 || i - (liv.rows / 2) + liv.lineNumber > GetLineCount(&liv.chain)) {
             printf("\x1b[%d;0H~", i);
         } else if (i == liv.rows / 2) {
+            GetInsertTextLine(buffer, liv.columns - liv.columnOffset + 1);
             printf("\x1b[%d;0H%-*d %s", i, liv.columnOffset - 1, liv.lineNumber, buffer);
         } else {
             printf("\x1b[%d;0H%*d %s", i, liv.columnOffset - 1, abs(i - (liv.rows / 2)), buffer);
@@ -132,26 +149,26 @@ void CursorNext() {
 }
 
 void EnterInsert() {
-    liv.insert.mode = 1;
-    liv.insert.removeCount = 0;
+    liv.mode = INSERT;
+    liv.removeCount = 0;
 }
 
 void InsertChar(char key) {
     if (key == ESCAPE) {
-        ModifyChain(&liv.chain, "", liv.lineNumber, liv.cursor, liv.insert.removeCount);
-        liv.insert.mode = 0;
-        liv.insert.removeCount = 0;
+        ModifyChain(&liv.chain, liv.insert, liv.lineNumber, liv.cursor, liv.removeCount);
+        liv.mode = NORMAL;
+        liv.removeCount = 0;
     } else if (key == BACKSPACE) {
         if (liv.cursor == 1) {
             if (liv.lineNumber > 1) {
                 LinePrev();
-                liv.insert.removeCount++;
+                liv.removeCount++;
                 liv.cursor += GetLineLength(&liv.chain, liv.lineNumber);
-                ModifyChain(&liv.chain, "", liv.lineNumber, liv.cursor, liv.insert.removeCount);
-                liv.insert.removeCount = 0;
+                ModifyChain(&liv.chain, liv.insert, liv.lineNumber, liv.cursor, liv.removeCount);
+                liv.removeCount = 0;
             }
         } else {
-            liv.insert.removeCount++;
+            liv.removeCount++;
             liv.cursor--;
         }
     } else if (key == NEWLINE) {
@@ -161,7 +178,7 @@ void InsertChar(char key) {
 void ProssesKeyPress() {
     char key;
     read(STDIN_FILENO, &key, 1);
-    if (liv.insert.mode) {
+    if (liv.mode) {
         InsertChar(key);
         return;
     }
