@@ -87,8 +87,8 @@ void LoadScreen() {
 
 void GetInsertTextLine(char* buffer, int bufferLength) {
     if (strlen(liv.insert) > liv.removeCount) {
-        for (int i = strlen(buffer); i > liv.cursor - strlen(liv.insert) - 2; i--) {
-            buffer[i + strlen(liv.insert) - liv.removeCount] = buffer[i];
+        for (int i = strlen(buffer) + 2; i > liv.cursor - strlen(liv.insert); i--) {
+            buffer[i + strlen(liv.insert) - liv.removeCount - 2] = buffer[i - 2];
         }
     } else if (strlen(liv.insert) < liv.removeCount) {
         for (int i = liv.cursor - 1; i < strlen(buffer); i++) {
