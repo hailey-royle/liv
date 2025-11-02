@@ -165,6 +165,7 @@ int ModifyChainDelete(struct chain* chain, int *piece, int *offset, int removeCo
 }
 
 int ModifyChainInsert(struct chain* chain, int* piece, char* text) {
+    *piece = chain->piece[*piece].prev;
     if (strlen(text) == 0) return 0;
     struct piece* newPiece = realloc(chain->piece, sizeof(struct piece) * (chain->pieceCount + 1));
     if (newPiece == NULL) return -1;
