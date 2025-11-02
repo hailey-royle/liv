@@ -142,7 +142,6 @@ int ModifyChainFindPlace(struct chain* chain, int* piece, int* offset, int lineN
 }
 
 int ModifyChainDelete(struct chain* chain, int *piece, int *offset, int removeCount) {
-    if (removeCount == 0) return 0;
     if (offset > 0) {
         struct piece* newPiece = realloc(chain->piece, sizeof(struct piece) * (chain->pieceCount + 1));
         if (newPiece == NULL) return -1;
@@ -155,7 +154,6 @@ int ModifyChainDelete(struct chain* chain, int *piece, int *offset, int removeCo
         chain->piece[*piece].next = chain->pieceCount;
         chain->piece[*piece].length = *offset;
         chain->pieceCount += 1;
-        *piece = chain->piece[*piece].next;
     }
     while (removeCount > chain->piece[*piece].length) {
         removeCount -= chain->piece[*piece].length;
@@ -179,7 +177,6 @@ int ModifyChainInsert(struct chain* chain, int* piece, char* text) {
     chain->piece[chain->piece[*piece].next].prev = chain->pieceCount;
     chain->piece[*piece].next = chain->pieceCount;
     chain->pieceCount += 1;
-    *piece = chain->piece[*piece].next;
     char* newBuffer = realloc(chain->buffer, strlen(text) + strlen(chain->buffer) + 1);
     if (newBuffer == NULL) return -1;
     chain->buffer = newBuffer;
