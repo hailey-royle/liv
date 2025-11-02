@@ -153,7 +153,7 @@ void EnterInsert() {
 
 void InsertChar(char key) {
     if (key == ESCAPE) {
-        ModifyChain(&liv.chain, liv.insert, liv.lineNumber, liv.cursor, liv.removeCount);
+        ModifyChain(&liv.chain, liv.insert, liv.lineNumber, liv.cursor - strlen(liv.insert), liv.removeCount);
         liv.mode = NORMAL;
         liv.removeCount = 0;
         liv.insert[0] = '\0';
@@ -166,7 +166,7 @@ void InsertChar(char key) {
                 liv.lineNumber--;
                 liv.cursor += GetLineLength(&liv.chain, liv.lineNumber);
                 liv.removeCount++;
-                ModifyChain(&liv.chain, liv.insert, liv.lineNumber, liv.cursor, liv.removeCount);
+                ModifyChain(&liv.chain, liv.insert, liv.lineNumber, liv.cursor - strlen(liv.insert), liv.removeCount);
                 liv.removeCount = 0;
             }
         } else {
