@@ -53,6 +53,7 @@ void DisableRawMode() {
 void LivExit(char* message) {
     DisableRawMode();
     write(STDOUT_FILENO, message, strlen(message));
+    PrintChain(&liv.chain);
     exit(0);
 }
 
