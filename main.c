@@ -174,6 +174,13 @@ void InsertChar(char key) {
             liv.cursor--;
         }
     } else if (key == NEWLINE) {
+        liv.insert[strlen(liv.insert) + 1] = '\0';
+        liv.insert[strlen(liv.insert)] = '\n';
+        ModifyChain(&liv.chain, liv.insert, liv.lineNumber, liv.cursor - strlen(liv.insert) + 1, liv.removeCount);
+        liv.removeCount = 0;
+        liv.insert[0] = '\0';
+        liv.lineNumber++;
+        liv.cursor = 1;
     } else {
         liv.insert[strlen(liv.insert) + 1] = '\0';
         liv.insert[strlen(liv.insert)] = key;

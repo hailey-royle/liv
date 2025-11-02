@@ -202,7 +202,13 @@ int ModifyChain(struct chain* chain, char* text, int lineNumber, int lineOffset,
 }
 
 void PrintChain(struct chain* chain) {
-    printf("\tchain.buffer:\r\n%s\r\n", chain->buffer);
+    printf("===buffer===\r\n\n%s\r\n===lines===\r\n", chain->buffer);
+    for (int i = 0; i < GetLineCount(chain); i++) {
+        char buffer[100] = {};
+        GetLine(chain, buffer, 100, i);
+        printf("\t%s\r\n", buffer);
+    }
+    printf("\n\n");
     for (int i = 0; i < chain->pieceCount; i++) {
         printf("\t*piece: %d\r\n", i);
         printf("\tnext:   %d\r\n", chain->piece[i].next);
