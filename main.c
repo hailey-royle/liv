@@ -163,10 +163,10 @@ void InsertChar(char key) {
             liv.cursor--;
         } else if (liv.cursor == 1) {
             if (liv.lineNumber > 1) {
-                liv.lineNumber--;
+                LinePrev();
                 liv.cursor += GetLineLength(&liv.chain, liv.lineNumber);
                 liv.removeCount++;
-                ModifyChain(&liv.chain, liv.insert, liv.lineNumber, liv.cursor - strlen(liv.insert), liv.removeCount);
+                ModifyChain(&liv.chain, liv.insert, liv.lineNumber, liv.cursor, liv.removeCount);
                 liv.removeCount = 0;
             }
         } else {

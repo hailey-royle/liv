@@ -142,19 +142,18 @@ int ModifyChainFindPlace(struct chain* chain, int* piece, int* offset, int lineN
 }
 
 int ModifyChainDelete(struct chain* chain, int *piece, int *offset, int removeCount) {
-    if (offset > 0) {
-        struct piece* newPiece = realloc(chain->piece, sizeof(struct piece) * (chain->pieceCount + 1));
-        if (newPiece == NULL) return -1;
-        chain->piece = newPiece;
-        chain->piece[chain->pieceCount].next = chain->piece[*piece].next;
-        chain->piece[chain->pieceCount].prev = *piece;
-        chain->piece[chain->pieceCount].offset = chain->piece[*piece].offset + *offset;
-        chain->piece[chain->pieceCount].length = chain->piece[*piece].length - *offset;
-        chain->piece[chain->piece[*piece].next].prev = chain->pieceCount;
-        chain->piece[*piece].next = chain->pieceCount;
-        chain->piece[*piece].length = *offset;
-        chain->pieceCount += 1;
-    }
+    struct piece* newPiece = realloc(chain->piece, sizeof(struct piece) * (chain->pieceCount + 1));
+    if (newPiece == NULL) return -1;
+    chain->piece = newPiece;
+    chain->piece[chain->pieceCount].next = chain->piece[*piece].next;
+    chain->piece[chain->pieceCount].prev = *piece;
+    chain->piece[chain->pieceCount].offset = chain->piece[*piece].offset + *offset;
+    chain->piece[chain->pieceCount].length = chain->piece[*piece].length - *offset;
+    chain->piece[chain->piece[*piece].next].prev = chain->pieceCount;
+    chain->piece[*piece].next = chain->pieceCount;
+    chain->piece[*piece].length = *offset;
+    chain->pieceCount += 1;
+    *piece = chain->piece[*piece].next;
     while (removeCount > chain->piece[*piece].length) {
         removeCount -= chain->piece[*piece].length;
         chain->piece[*piece].length = 0;
