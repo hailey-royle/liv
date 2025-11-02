@@ -157,11 +157,14 @@ void InsertChar(char key) {
         liv.removeCount = 0;
         liv.insert[0] = '\0';
     } else if (key == BACKSPACE) {
-        if (liv.cursor == 1) {
+        if (strlen(liv.insert) > 0) {
+            liv.insert[strlen(liv.insert) - 1] = '\0';
+            liv.cursor--;
+        } else if (liv.cursor == 1) {
             if (liv.lineNumber > 1) {
-                LinePrev();
-                liv.removeCount++;
+                liv.lineNumber--;
                 liv.cursor += GetLineLength(&liv.chain, liv.lineNumber);
+                liv.removeCount++;
                 ModifyChain(&liv.chain, liv.insert, liv.lineNumber, liv.cursor, liv.removeCount);
                 liv.removeCount = 0;
             }
