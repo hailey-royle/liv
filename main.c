@@ -15,8 +15,6 @@
 #define BACKSPACE 127
 #define NEWLINE 13
 
-#define APPEND 0
-#define ORIGINAL 1
 #define NORMAL 0
 #define INSERT 1
 
@@ -83,9 +81,8 @@ void LoadScreen() {
     liv.columnOffset = 4;
     liv.lineNumber = 1;
     liv.cursor = 1;
-    liv.insert = malloc(liv.columns - liv.columnOffset + 1);
+    liv.insert = calloc(liv.columns - liv.columnOffset + 1, 1);
     if (liv.insert == NULL) LivExit("LoadScreen malloc failed\r\n");
-    liv.insert[0] = '\0';
 }
 
 void GetInsertTextLine(char* buffer, int bufferLength) {
@@ -158,6 +155,7 @@ void InsertChar(char key) {
         ModifyChain(&liv.chain, liv.insert, liv.lineNumber, liv.cursor, liv.removeCount);
         liv.mode = NORMAL;
         liv.removeCount = 0;
+        liv.insert[0] = '\0';
     } else if (key == BACKSPACE) {
         if (liv.cursor == 1) {
             if (liv.lineNumber > 1) {
@@ -173,6 +171,9 @@ void InsertChar(char key) {
         }
     } else if (key == NEWLINE) {
     } else {
+        liv.insert[strlen(liv.insert) + 1] = '\0';
+        liv.insert[strlen(liv.insert)] = key;
+        liv.cursor++;
     }
 }
 void ProssesKeyPress() {
