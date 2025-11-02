@@ -53,7 +53,6 @@ void DisableRawMode() {
 void LivExit(char* message) {
     DisableRawMode();
     write(STDOUT_FILENO, message, strlen(message));
-    PrintChain(&liv.chain);
     exit(0);
 }
 
@@ -119,6 +118,16 @@ void WriteScreen() {
     fflush(stdout);
 }
 
+void WriteFile() {
+    FILE* fp = fopen(liv.fileName, "w");
+    if (fp == NULL) LivExit("LoadFile fp is NULL\r\n");
+    for (int i = 1; i <= GetLineCount(&liv.chain); i++) {
+        char buffer[liv.columns - liv.columnOffset + 1] = {};
+        GetLine(&liv.chain, buffer, liv.columns - liv.columnOffset + 1, i);
+        fprintf(fp, "%s", buffer);
+    }
+    fclose(fp);
+}
 
 void LineNext() {
     if (liv.lineNumber < GetLineCount(&liv.chain)) {
@@ -195,6 +204,7 @@ void ProssesKeyPress() {
         return;
     }
     if      (key == 'q') LivExit("Success!\r\n");
+    else if (key == 'w') WriteFile();
     else if (key == 'i') EnterInsert();
     else if (key == 'k') LinePrev();
     else if (key == 'j') LineNext();
