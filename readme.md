@@ -21,6 +21,8 @@ All commands follow the pattern of, [command - count - motion]
 - i - insert
 - a - append
 
+- *n* - do thing x times
+
 - h - cursor left
 - l - cursor right
 - j - line down
@@ -43,8 +45,6 @@ All commands follow the pattern of, [command - count - motion]
 - g - go to line
 - s - subsitute
 - ? - repeat command
-
-- *n* - do thing x times
 
 - ? - line start
 - ? - line end
