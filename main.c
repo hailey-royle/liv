@@ -133,7 +133,9 @@ void InsertChar(char key) {
             liv.cursor--;
         } else if (liv.cursor == 1) {
             if (liv.lineNumber > 1) {
-                LinePrev();
+                if (liv.cursor > 1) {
+                    liv.cursor--;
+                }
                 liv.cursor += GetLineLength(&liv.chain, liv.lineNumber);
                 liv.removeCount++;
                 ModifyChain(&liv.chain, liv.insert, liv.lineNumber, liv.cursor, liv.removeCount);
@@ -230,6 +232,16 @@ void LinePrev() {
     }
 }
 
+void FileStart() {
+    liv.lineNumber = 1;
+    liv.cursor = 1;
+}
+
+void FileEnd() {
+    liv.lineNumber = GetLineCount(&liv.chain);
+    liv.cursor = 1;
+}
+
 void ProssesKeyPress() {
     char key;
     read(STDIN_FILENO, &key, 1);
@@ -247,6 +259,8 @@ void ProssesKeyPress() {
     else if (key == 'e') WordNext();
     else if (key == 'k') LinePrev();
     else if (key == 'j') LineNext();
+    else if (key == 't') FileStart();
+    else if (key == 'z') FileEnd();
 }
 
 void RunLiv() {
