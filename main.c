@@ -161,7 +161,7 @@ void CursorNext() {
 void WordPrev() {
     char buffer[liv.columns - liv.columnOffset + 1] = {};
     GetLine(&liv.chain, buffer, liv.columns - liv.columnOffset + 1, liv.lineNumber);
-    if (liv.cursor > 1) {
+    while (buffer[liv.cursor - 1] == ' ' && liv.cursor > 1) {
         liv.cursor--;
     }
     while (buffer[liv.cursor - 1] != ' ' && liv.cursor > 1) {
@@ -172,10 +172,10 @@ void WordPrev() {
 void WordNext() {
     char buffer[liv.columns - liv.columnOffset + 1] = {};
     GetLine(&liv.chain, buffer, liv.columns - liv.columnOffset + 1, liv.lineNumber);
-    if (liv.cursor <= GetLineLength(&liv.chain, liv.lineNumber)) {
+    while (buffer[liv.cursor - 1] == ' ') {
         liv.cursor++;
     }
-    while (buffer[liv.cursor - 1] != ' ' && buffer[liv.cursor] != '\0') {
+    while (buffer[liv.cursor - 1] != ' ' && buffer[liv.cursor] != '\n' && buffer[liv.cursor] != '\0') {
         liv.cursor++;
     }
 }
