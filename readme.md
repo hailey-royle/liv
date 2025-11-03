@@ -1,12 +1,12 @@
 
-# liv!
+# Liv!
 
-liv is a text editor I have made for my personal idiosyncrasys and fun. 
-It is currently a usable!  
+Liv is a text editor I have made for my personal idiosyncrasys and fun. 
+It is currently working!  
 
 # Usage
 
-liv has two modes, insert and command.  
+Liv has two modes, insert and command.  
 On start, liv is in command mode.  
 Enter insert mode by pressing 'i', exit by pressing 'escape'.  
 
@@ -24,8 +24,8 @@ All commands follow the pattern of, [command - count - motion]
 - l - cursor right
 - j - line down
 - k - line up
-- b - cursor next word
-- e - cursor previous word
+- b - word next
+- e - word previous
 
 ### planned
 
@@ -43,11 +43,13 @@ All commands follow the pattern of, [command - count - motion]
 
 - *n* - do thing x times
 
--   - line start
--   - line end
--   - paragraph start
--   - paragraph end
+- ? - line start
+- ? - line end
+- ? - paragraph start
+- ? - paragraph end
 - t - file start
 - z - file end
+
+- ? - around [word | line | paragraph | file]
 
 Unused: amvx  
