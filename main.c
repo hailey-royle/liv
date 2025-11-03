@@ -124,7 +124,7 @@ void WriteFile() {
     for (int i = 1; i <= GetLineCount(&liv.chain); i++) {
         char buffer[liv.columns - liv.columnOffset + 1] = {};
         GetLine(&liv.chain, buffer, liv.columns - liv.columnOffset + 1, i);
-        fprintf(fp, "%s", buffer);
+        fprintf(fp, "%s\n", buffer);
     }
     fclose(fp);
 }
@@ -150,7 +150,29 @@ void CursorPrev() {
 }
 
 void CursorNext() {
-    if (liv.cursor < GetLineLength(&liv.chain, liv.lineNumber)) {
+    if (liv.cursor <= GetLineLength(&liv.chain, liv.lineNumber)) {
+        liv.cursor++;
+    }
+}
+
+void WordPrev() {
+    char buffer[liv.columns - liv.columnOffset + 1] = {};
+    GetLine(&liv.chain, buffer, liv.columns - liv.columnOffset + 1, liv.lineNumber);
+    if (liv.cursor > 1) {
+        liv.cursor--;
+    }
+    while (buffer[liv.cursor - 1] != ' ' && liv.cursor > 1) {
+        liv.cursor--;
+    }
+}
+
+void WordNext() {
+    char buffer[liv.columns - liv.columnOffset + 1] = {};
+    GetLine(&liv.chain, buffer, liv.columns - liv.columnOffset + 1, liv.lineNumber);
+    if (liv.cursor <= GetLineLength(&liv.chain, liv.lineNumber)) {
+        liv.cursor++;
+    }
+    while (buffer[liv.cursor - 1] != ' ' && buffer[liv.cursor - 1] != '\0') {
         liv.cursor++;
     }
 }
@@ -210,6 +232,8 @@ void ProssesKeyPress() {
     else if (key == 'j') LineNext();
     else if (key == 'h') CursorPrev();
     else if (key == 'l') CursorNext();
+    else if (key == 'b') WordPrev();
+    else if (key == 'e') WordNext();
 }
 
 void RunLiv() {
