@@ -153,7 +153,7 @@ void CursorPrev() {
 }
 
 void CursorNext() {
-    if (liv.cursor <= GetLineLength(&liv.chain, liv.lineNumber)) {
+    if (liv.cursor < GetLineLength(&liv.chain, liv.lineNumber)) {
         liv.cursor++;
     }
 }
@@ -183,6 +183,14 @@ void WordNext() {
 void EnterInsert() {
     liv.mode = INSERT;
     liv.removeCount = 0;
+    liv.insert[0] = '\0';
+}
+
+void EnterInsertAppend() {
+    liv.cursor++;
+    liv.mode = INSERT;
+    liv.removeCount = 0;
+    liv.insert[0] = '\0';
 }
 
 void InsertChar(char key) {
@@ -232,6 +240,7 @@ void ProssesKeyPress() {
     if      (key == 'q') LivExit("Success!\r\n");
     else if (key == 'w') WriteFile();
     else if (key == 'i') EnterInsert();
+    else if (key == 'a') EnterInsertAppend();
     else if (key == 'k') LinePrev();
     else if (key == 'j') LineNext();
     else if (key == 'h') CursorPrev();

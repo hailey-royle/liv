@@ -19,6 +19,7 @@ All commands follow the pattern of, [command - count - motion]
 - q - quit
 - w - write
 - i - insert
+- a - append
 
 - h - cursor left
 - l - cursor right
@@ -39,7 +40,7 @@ All commands follow the pattern of, [command - count - motion]
 - r - redo
 - g - go to line
 - s - subsitute
-- n - repeat command
+- ? - repeat command
 
 - *n* - do thing x times
 
@@ -52,4 +53,4 @@ All commands follow the pattern of, [command - count - motion]
 
 - ? - around [word | line | paragraph | file]
 
-Unused: amvx  
+Unused: mnvx  
