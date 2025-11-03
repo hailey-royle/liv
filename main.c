@@ -120,11 +120,11 @@ void WriteScreen() {
 
 void WriteFile() {
     FILE* fp = fopen(liv.fileName, "w");
-    if (fp == NULL) LivExit("LoadFile fp is NULL\r\n");
+    if (fp == NULL) LivExit("WriteFile fp is NULL\r\n");
     for (int i = 1; i <= GetLineCount(&liv.chain); i++) {
         char buffer[liv.columns - liv.columnOffset + 1] = {};
         GetLine(&liv.chain, buffer, liv.columns - liv.columnOffset + 1, i);
-        fprintf(fp, "%s\n", buffer);
+        fprintf(fp, "%s", buffer);
     }
     fclose(fp);
 }
