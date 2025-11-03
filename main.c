@@ -183,6 +183,15 @@ void EnterInsertAppend() {
     liv.insert[0] = '\0';
 }
 
+void GotoLine() {
+    if (liv.commandCount > GetLineCount(&liv.chain)) {
+        liv.lineNumber = GetLineCount(&liv.chain);
+    } else {
+        liv.lineNumber = liv.commandCount;
+    }
+    liv.commandCount = 0;
+}
+
 void CursorPrev() {
     while (liv.commandCount > 0) {
         if (liv.cursor > 1) {
@@ -277,6 +286,7 @@ void ProssesKeyPress() {
         else if (key == 'w') WriteFile();
         else if (key == 'i') EnterInsert();
         else if (key == 'a') EnterInsertAppend();
+        else if (key == 'g') GotoLine();
         else if (key == 'h') CursorPrev();
         else if (key == 'l') CursorNext();
         else if (key == 'b') WordPrev();

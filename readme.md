@@ -12,16 +12,17 @@ Enter insert mode by pressing 'i', exit by pressing 'escape'.
 
 ## Commands
 
-All commands follow the pattern of, [command - count - motion]  
+All commands follow the pattern of, [count - command - motion]  
 
 ### implemented
+
+- *n* - do thing x times
 
 - q - quit
 - w - write
 - i - insert
 - a - append
-
-- *n* - do thing x times
+- g - go to line
 
 - h - cursor left
 - l - cursor right
@@ -42,7 +43,6 @@ All commands follow the pattern of, [command - count - motion]
 - f - find
 - u - undo
 - r - redo
-- g - go to line
 - s - subsitute
 - ? - repeat command
 
