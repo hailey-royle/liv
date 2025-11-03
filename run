@@ -1,11 +1,13 @@
 #!/bin/bash
 
 if [ "$1" == "test" ]; then
-    gcc test.c -Og -Wall -fanalyzer -fsanitize=address
+    gcc test.c -Og -Wall -Werror -fanalyzer -fsanitize=address
     ./a.out
     rm a.out
+elif [ "$1" == "build" ]; then
+    gcc main.c -o liv -Og -Wall -Werror
 else
-    gcc main.c -Og -Wall -fanalyzer -fsanitize=address
+    gcc main.c -Og -Wall -Werror -fanalyzer -fsanitize=address
     ./a.out $1
     rm a.out
 fi

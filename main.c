@@ -221,6 +221,7 @@ void InsertChar(char key) {
         liv.cursor++;
     }
 }
+
 void ProssesKeyPress() {
     char key;
     read(STDIN_FILENO, &key, 1);
