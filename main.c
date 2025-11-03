@@ -121,78 +121,6 @@ void WriteScreen() {
     fflush(stdout);
 }
 
-void WriteFile() {
-    FILE* fp = fopen(liv.fileName, "w");
-    if (fp == NULL) LivExit("WriteFile fp is NULL\r\n");
-    for (int i = 1; i <= GetLineCount(&liv.chain); i++) {
-        char buffer[liv.columns - liv.columnOffset + 1] = {};
-        GetLine(&liv.chain, buffer, liv.columns - liv.columnOffset + 1, i);
-        fprintf(fp, "%s", buffer);
-    }
-    fclose(fp);
-}
-
-void LineNext() {
-    if (liv.lineNumber < GetLineCount(&liv.chain)) {
-        liv.lineNumber++;
-        liv.cursor = 1;
-    }
-}
-
-void LinePrev() {
-    if (liv.lineNumber > 1) {
-        liv.lineNumber--;
-        liv.cursor = 1;
-    }
-}
-
-void CursorPrev() {
-    if (liv.cursor > 1) {
-        liv.cursor--;
-    }
-}
-
-void CursorNext() {
-    if (liv.cursor < GetLineLength(&liv.chain, liv.lineNumber)) {
-        liv.cursor++;
-    }
-}
-
-void WordPrev() {
-    char buffer[liv.columns - liv.columnOffset + 1] = {};
-    GetLine(&liv.chain, buffer, liv.columns - liv.columnOffset + 1, liv.lineNumber);
-    while (buffer[liv.cursor - 1] == ' ' && liv.cursor > 1) {
-        liv.cursor--;
-    }
-    while (buffer[liv.cursor - 1] != ' ' && liv.cursor > 1) {
-        liv.cursor--;
-    }
-}
-
-void WordNext() {
-    char buffer[liv.columns - liv.columnOffset + 1] = {};
-    GetLine(&liv.chain, buffer, liv.columns - liv.columnOffset + 1, liv.lineNumber);
-    while (buffer[liv.cursor - 1] == ' ') {
-        liv.cursor++;
-    }
-    while (buffer[liv.cursor - 1] != ' ' && buffer[liv.cursor] != '\n' && buffer[liv.cursor] != '\0') {
-        liv.cursor++;
-    }
-}
-
-void EnterInsert() {
-    liv.mode = INSERT;
-    liv.removeCount = 0;
-    liv.insert[0] = '\0';
-}
-
-void EnterInsertAppend() {
-    liv.cursor++;
-    liv.mode = INSERT;
-    liv.removeCount = 0;
-    liv.insert[0] = '\0';
-}
-
 void InsertChar(char key) {
     if (key == ESCAPE) {
         ModifyChain(&liv.chain, liv.insert, liv.lineNumber, liv.cursor - strlen(liv.insert), liv.removeCount);
@@ -230,6 +158,78 @@ void InsertChar(char key) {
     }
 }
 
+void WriteFile() {
+    FILE* fp = fopen(liv.fileName, "w");
+    if (fp == NULL) LivExit("WriteFile fp is NULL\r\n");
+    for (int i = 1; i <= GetLineCount(&liv.chain); i++) {
+        char buffer[liv.columns - liv.columnOffset + 1] = {};
+        GetLine(&liv.chain, buffer, liv.columns - liv.columnOffset + 1, i);
+        fprintf(fp, "%s", buffer);
+    }
+    fclose(fp);
+}
+
+void EnterInsert() {
+    liv.mode = INSERT;
+    liv.removeCount = 0;
+    liv.insert[0] = '\0';
+}
+
+void EnterInsertAppend() {
+    liv.cursor++;
+    liv.mode = INSERT;
+    liv.removeCount = 0;
+    liv.insert[0] = '\0';
+}
+
+void CursorPrev() {
+    if (liv.cursor > 1) {
+        liv.cursor--;
+    }
+}
+
+void CursorNext() {
+    if (liv.cursor < GetLineLength(&liv.chain, liv.lineNumber)) {
+        liv.cursor++;
+    }
+}
+
+void WordPrev() {
+    char buffer[liv.columns - liv.columnOffset + 1] = {};
+    GetLine(&liv.chain, buffer, liv.columns - liv.columnOffset + 1, liv.lineNumber);
+    while (buffer[liv.cursor - 1] == ' ' && liv.cursor > 1) {
+        liv.cursor--;
+    }
+    while (buffer[liv.cursor - 1] != ' ' && liv.cursor > 1) {
+        liv.cursor--;
+    }
+}
+
+void WordNext() {
+    char buffer[liv.columns - liv.columnOffset + 1] = {};
+    GetLine(&liv.chain, buffer, liv.columns - liv.columnOffset + 1, liv.lineNumber);
+    while (buffer[liv.cursor - 1] == ' ') {
+        liv.cursor++;
+    }
+    while (buffer[liv.cursor - 1] != ' ' && buffer[liv.cursor] != '\n' && buffer[liv.cursor] != '\0') {
+        liv.cursor++;
+    }
+}
+
+void LineNext() {
+    if (liv.lineNumber < GetLineCount(&liv.chain)) {
+        liv.lineNumber++;
+        liv.cursor = 1;
+    }
+}
+
+void LinePrev() {
+    if (liv.lineNumber > 1) {
+        liv.lineNumber--;
+        liv.cursor = 1;
+    }
+}
+
 void ProssesKeyPress() {
     char key;
     read(STDIN_FILENO, &key, 1);
@@ -241,12 +241,12 @@ void ProssesKeyPress() {
     else if (key == 'w') WriteFile();
     else if (key == 'i') EnterInsert();
     else if (key == 'a') EnterInsertAppend();
-    else if (key == 'k') LinePrev();
-    else if (key == 'j') LineNext();
     else if (key == 'h') CursorPrev();
     else if (key == 'l') CursorNext();
     else if (key == 'b') WordPrev();
     else if (key == 'e') WordNext();
+    else if (key == 'k') LinePrev();
+    else if (key == 'j') LineNext();
 }
 
 void RunLiv() {
