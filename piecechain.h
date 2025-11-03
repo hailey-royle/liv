@@ -60,6 +60,7 @@ int GetLineLength(struct chain* chain, int line) {
             continue;
         }
         if (chain->buffer[chain->piece[piece].offset + offset] == '\n') {
+            length++;
             break;
         }
         offset++;

@@ -135,7 +135,7 @@ void InsertChar(char key) {
         } else if (liv.cursor == 1) {
             if (liv.lineNumber > 1) {
                 liv.lineNumber--;
-                liv.cursor = GetLineLength(&liv.chain, liv.lineNumber) + 1;
+                liv.cursor = GetLineLength(&liv.chain, liv.lineNumber);
                 liv.removeCount++;
                 ModifyChain(&liv.chain, liv.insert, liv.lineNumber, liv.cursor, liv.removeCount);
                 liv.removeCount = 0;
@@ -183,6 +183,13 @@ void EnterInsertAppend() {
     liv.insert[0] = '\0';
 }
 
+void EnterInsertOpen() {
+    ModifyChain(&liv.chain, "\n", liv.lineNumber, GetLineLength(&liv.chain, liv.lineNumber), liv.removeCount);
+    liv.lineNumber++;
+    liv.cursor = 1;
+    liv.mode = INSERT;
+}
+
 void GotoLine() {
     if (liv.commandCount > GetLineCount(&liv.chain)) {
         liv.lineNumber = GetLineCount(&liv.chain);
@@ -203,7 +210,7 @@ void CursorPrev() {
 
 void CursorNext() {
     while (liv.commandCount > 0) {
-        if (liv.cursor < GetLineLength(&liv.chain, liv.lineNumber)) {
+        if (liv.cursor < GetLineLength(&liv.chain, liv.lineNumber) - 1) {
             liv.cursor++;
         }
         liv.commandCount--;
@@ -286,6 +293,7 @@ void ProssesKeyPress() {
         else if (key == 'w') WriteFile();
         else if (key == 'i') EnterInsert();
         else if (key == 'a') EnterInsertAppend();
+        else if (key == 'o') EnterInsertOpen();
         else if (key == 'g') GotoLine();
         else if (key == 'h') CursorPrev();
         else if (key == 'l') CursorNext();

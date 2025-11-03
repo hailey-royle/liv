@@ -22,6 +22,7 @@ All commands follow the pattern of, [count - command - motion]
 - w - write
 - i - insert
 - a - append
+- o - open
 - g - go to line
 
 - h - cursor left
@@ -35,7 +36,6 @@ All commands follow the pattern of, [count - command - motion]
 
 ### planned
 
-- o - open line
 - d - delete
 - c - change
 - y - yeet
