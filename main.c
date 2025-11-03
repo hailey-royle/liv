@@ -105,6 +105,9 @@ void WriteScreen() {
     for (int i = 1; i <= liv.rows; i++) {
         char buffer[liv.columns - liv.columnOffset + 1] = {};
         GetLine(&liv.chain, buffer, liv.columns - liv.columnOffset + 1, i - (liv.rows / 2) + liv.lineNumber);
+        if (strlen(buffer) > 0) {
+            buffer[strlen(buffer) - 1] = '\0';
+        }
         if (i - (liv.rows / 2) + liv.lineNumber < 1 || i - (liv.rows / 2) + liv.lineNumber > GetLineCount(&liv.chain)) {
             printf("\x1b[%d;0H~", i);
         } else if (i == liv.rows / 2) {
@@ -172,7 +175,7 @@ void WordNext() {
     if (liv.cursor <= GetLineLength(&liv.chain, liv.lineNumber)) {
         liv.cursor++;
     }
-    while (buffer[liv.cursor - 1] != ' ' && buffer[liv.cursor - 1] != '\0') {
+    while (buffer[liv.cursor - 1] != ' ' && buffer[liv.cursor] != '\0') {
         liv.cursor++;
     }
 }
