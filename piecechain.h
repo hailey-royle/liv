@@ -17,7 +17,7 @@ int GetLineCount(struct chain* chain) {
     if (chain->buffer == NULL) return -1;
     int piece = 0;
     int offset = 0;
-    int lineCount = 1;
+    int lineCount = 0;
     while (chain->piece[piece].next != -1) {
         if (offset >= chain->piece[piece].length) {
             piece = chain->piece[piece].next;
@@ -60,7 +60,6 @@ int GetLineLength(struct chain* chain, int line) {
             continue;
         }
         if (chain->buffer[chain->piece[piece].offset + offset] == '\n') {
-            length++;
             break;
         }
         offset++;

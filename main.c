@@ -106,9 +106,6 @@ void WriteScreen() {
     for (int i = 1; i <= liv.rows; i++) {
         char buffer[liv.columns - liv.columnOffset + 1] = {};
         GetLine(&liv.chain, buffer, liv.columns - liv.columnOffset + 1, i - (liv.rows / 2) + liv.lineNumber);
-        if (strlen(buffer) > 0) {
-            buffer[strlen(buffer) - 1] = '\0';
-        }
         if (i - (liv.rows / 2) + liv.lineNumber < 1 || i - (liv.rows / 2) + liv.lineNumber > GetLineCount(&liv.chain)) {
             printf("\x1b[%d;0H~", i);
         } else if (i == liv.rows / 2) {
@@ -135,7 +132,7 @@ void InsertChar(char key) {
         } else if (liv.cursor == 1) {
             if (liv.lineNumber > 1) {
                 liv.lineNumber--;
-                liv.cursor = GetLineLength(&liv.chain, liv.lineNumber);
+                liv.cursor = GetLineLength(&liv.chain, liv.lineNumber) + 1;
                 liv.removeCount++;
                 ModifyChain(&liv.chain, liv.insert, liv.lineNumber, liv.cursor, liv.removeCount);
                 liv.removeCount = 0;
@@ -210,7 +207,7 @@ void CursorPrev() {
 
 void CursorNext() {
     while (liv.commandCount > 0) {
-        if (liv.cursor < GetLineLength(&liv.chain, liv.lineNumber) - 1) {
+        if (liv.cursor < GetLineLength(&liv.chain, liv.lineNumber)) {
             liv.cursor++;
         }
         liv.commandCount--;
@@ -267,13 +264,13 @@ void LineNext() {
 
 void ParagraphPrev() {
     while (liv.commandCount > 0) {
-        while (GetLineLength(&liv.chain, liv.lineNumber) <= 1) {
+        while (GetLineLength(&liv.chain, liv.lineNumber) <= 0) {
             if (liv.lineNumber > 1) {
                 liv.lineNumber--;
                 liv.cursor = 1;
             } else break;
         }
-        while (GetLineLength(&liv.chain, liv.lineNumber) > 1) {
+        while (GetLineLength(&liv.chain, liv.lineNumber) > 0) {
             if (liv.lineNumber > 1) {
                 liv.lineNumber--;
                 liv.cursor = 1;
@@ -285,13 +282,13 @@ void ParagraphPrev() {
 
 void ParagraphNext() {
     while (liv.commandCount > 0) {
-        while (GetLineLength(&liv.chain, liv.lineNumber) <= 1) {
+        while (GetLineLength(&liv.chain, liv.lineNumber) <= 0) {
             if (liv.lineNumber < GetLineCount(&liv.chain)) {
                 liv.lineNumber++;
                 liv.cursor = 1;
             } else break;
         }
-        while (GetLineLength(&liv.chain, liv.lineNumber) > 1) {
+        while (GetLineLength(&liv.chain, liv.lineNumber) > 0) {
             if (liv.lineNumber < GetLineCount(&liv.chain)) {
                 liv.lineNumber++;
                 liv.cursor = 1;
