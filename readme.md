@@ -8,7 +8,7 @@ It is currently working!
 
 Liv has two modes, insert and command.  
 On start, liv is in command mode.  
-Enter insert mode by pressing 'i', exit by pressing 'escape'.  
+Enter insert mode by pressing 'i'(or 'a' or 'o'), exit by pressing 'escape'.  
 
 ## Commands
 
@@ -16,8 +16,10 @@ All commands follow the pattern of, [count - command - motion]
 
 ### implemented
 
+**Count**  
 - *n* - do thing x times
 
+**Command**  
 - q - quit
 - w - write
 - i - insert
@@ -25,18 +27,19 @@ All commands follow the pattern of, [count - command - motion]
 - o - open
 - g - go to line
 
+**Motion**  
 - h - cursor left
 - l - cursor right
 - j - line down
 - k - line up
-- b - word next
-- e - word previous
-- m - paragraph start
-- n - paragraph end
-- t - file start
-- z - file end
+- b - word left
+- e - word right
+- m - paragraph up
+- n - paragraph down
 - x - line start
 - v - line end
+- t - file start
+- z - file end
 
 ### planned
 
@@ -49,8 +52,4 @@ All commands follow the pattern of, [count - command - motion]
 - r - redo
 - s - subsitute
 - ? - repeat command
-
-
 - ? - around [word | line | paragraph | file]
-
-Unused: mnvx  
