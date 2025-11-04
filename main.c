@@ -245,6 +245,16 @@ void WordNext() {
     }
 }
 
+void LinePrev() {
+    while (liv.commandCount > 0) {
+        if (liv.lineNumber > 1) {
+            liv.lineNumber--;
+            liv.cursor = 1;
+        }
+        liv.commandCount--;
+    }
+}
+
 void LineNext() {
     while (liv.commandCount > 0) {
         if (liv.lineNumber < GetLineCount(&liv.chain)) {
@@ -255,11 +265,37 @@ void LineNext() {
     }
 }
 
-void LinePrev() {
+void ParagraphPrev() {
     while (liv.commandCount > 0) {
-        if (liv.lineNumber > 1) {
-            liv.lineNumber--;
-            liv.cursor = 1;
+        while (GetLineLength(&liv.chain, liv.lineNumber) <= 1) {
+            if (liv.lineNumber > 1) {
+                liv.lineNumber--;
+                liv.cursor = 1;
+            } else break;
+        }
+        while (GetLineLength(&liv.chain, liv.lineNumber) > 1) {
+            if (liv.lineNumber > 1) {
+                liv.lineNumber--;
+                liv.cursor = 1;
+            } else break;
+        }
+        liv.commandCount--;
+    }
+}
+
+void ParagraphNext() {
+    while (liv.commandCount > 0) {
+        while (GetLineLength(&liv.chain, liv.lineNumber) <= 1) {
+            if (liv.lineNumber < GetLineCount(&liv.chain)) {
+                liv.lineNumber++;
+                liv.cursor = 1;
+            } else break;
+        }
+        while (GetLineLength(&liv.chain, liv.lineNumber) > 1) {
+            if (liv.lineNumber < GetLineCount(&liv.chain)) {
+                liv.lineNumber++;
+                liv.cursor = 1;
+            } else break;
         }
         liv.commandCount--;
     }
@@ -301,6 +337,8 @@ void ProssesKeyPress() {
         else if (key == 'e') WordNext();
         else if (key == 'k') LinePrev();
         else if (key == 'j') LineNext();
+        else if (key == 'm') ParagraphPrev();
+        else if (key == 'n') ParagraphNext();
         else if (key == 't') FileStart();
         else if (key == 'z') FileEnd();
         liv.commandCount = 0;
