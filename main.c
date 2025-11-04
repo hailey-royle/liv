@@ -322,7 +322,7 @@ void ProssesKeyPress() {
         if (liv.commandCount == 0) {
             liv.commandCount = 1;
         }
-        if      (key == 'q') LivExit("Success!\r\n");
+        if      (key == 'q') LivExit("");
         else if (key == 'w') WriteFile();
         else if (key == 'i') EnterInsert();
         else if (key == 'a') EnterInsertAppend();
