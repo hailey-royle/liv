@@ -31,6 +31,8 @@ All commands follow the pattern of, [count - command - motion]
 - k - line up
 - b - word next
 - e - word previous
+- m - paragraph start
+- n - paragraph end
 - t - file start
 - z - file end
 
@@ -48,8 +50,6 @@ All commands follow the pattern of, [count - command - motion]
 
 - ? - line start
 - ? - line end
-- ? - paragraph start
-- ? - paragraph end
 
 - ? - around [word | line | paragraph | file]
 
