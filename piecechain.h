@@ -95,9 +95,6 @@ int GetLine(struct chain* chain, char* buffer, int bufferLength, int line) {
             continue;
         }
         if (chain->buffer[chain->piece[piece].offset + offset] == '\n') {
-            *buffer = chain->buffer[chain->piece[piece].offset + offset];
-            buffer++;
-            bufferLength--;
             break;
         }
         *buffer = chain->buffer[chain->piece[piece].offset + offset];
