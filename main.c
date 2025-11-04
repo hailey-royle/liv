@@ -242,6 +242,17 @@ void WordNext() {
     }
 }
 
+void LineStart() {
+    liv.cursor = 1;
+}
+
+void LineEnd() {
+    liv.cursor = GetLineLength(&liv.chain, liv.lineNumber);
+    if (liv.cursor == 0) {
+        liv.cursor = 1;
+    }
+}
+
 void LinePrev() {
     while (liv.commandCount > 0) {
         if (liv.lineNumber > 1) {
@@ -332,6 +343,8 @@ void ProssesKeyPress() {
         else if (key == 'l') CursorNext();
         else if (key == 'b') WordPrev();
         else if (key == 'e') WordNext();
+        else if (key == 'x') LineStart();
+        else if (key == 'v') LineEnd();
         else if (key == 'k') LinePrev();
         else if (key == 'j') LineNext();
         else if (key == 'm') ParagraphPrev();

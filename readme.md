@@ -35,6 +35,8 @@ All commands follow the pattern of, [count - command - motion]
 - n - paragraph end
 - t - file start
 - z - file end
+- x - line start
+- v - line end
 
 ### planned
 
@@ -48,8 +50,6 @@ All commands follow the pattern of, [count - command - motion]
 - s - subsitute
 - ? - repeat command
 
-- ? - line start
-- ? - line end
 
 - ? - around [word | line | paragraph | file]
 
