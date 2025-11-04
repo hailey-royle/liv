@@ -181,7 +181,7 @@ void EnterInsertAppend() {
 }
 
 void EnterInsertOpen() {
-    ModifyChain(&liv.chain, "\n", liv.lineNumber, GetLineLength(&liv.chain, liv.lineNumber), liv.removeCount);
+    ModifyChain(&liv.chain, "\n", liv.lineNumber, GetLineLength(&liv.chain, liv.lineNumber) + 1, liv.removeCount);
     liv.lineNumber++;
     liv.cursor = 1;
     liv.mode = INSERT;
