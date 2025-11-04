@@ -162,7 +162,7 @@ void WriteFile() {
     for (int i = 1; i <= GetLineCount(&liv.chain); i++) {
         char buffer[liv.columns - liv.columnOffset + 1] = {};
         GetLine(&liv.chain, buffer, liv.columns - liv.columnOffset + 1, i);
-        fprintf(fp, "%s", buffer);
+        fprintf(fp, "%s\n", buffer);
     }
     fclose(fp);
 }
