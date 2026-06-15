@@ -1,3 +1,4 @@
+# liv has been abandoned in favor of [lute](https://github.com/hailey-royle/lute).
 
 # Liv!
 
